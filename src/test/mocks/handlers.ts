@@ -18,7 +18,7 @@ export const handlers = [
   // Welcome API
   http.get('/api/welcome', () => {
     return HttpResponse.json({
-      message: 'Welcome to Galipette Portal',
+      message: 'Welcome to Kaptain\'s React Template',
       version: '1.0.0',
       contributors: ['Developer 1', 'Developer 2'],
     });

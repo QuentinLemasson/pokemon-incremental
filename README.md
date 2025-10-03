@@ -1,6 +1,6 @@
-# Galipette Portal
+# Kaptain's React Template
 
-A React + TypeScript + Vite application built with a **feature-first directory architecture**.
+A modern React + TypeScript + Vite template built with a **feature-first directory architecture**.
 
 ## 📚 Documentation
 
@@ -73,7 +73,7 @@ src/
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd galipette-portal
+cd kaptain-react-template
 
 # Install dependencies
 npm install
@@ -148,6 +148,8 @@ import { Button } from '@/common/components/Button';
 - ✅ **Container support** for Docker and Podman
 - ✅ **Code quality** with ESLint and Prettier
 - ✅ **Comprehensive documentation** for all aspects
+- ✅ **Shadcn/ui components** for modern UI development
+- ✅ **Tailwind CSS** for utility-first styling
 
 ## 🤝 Contributing
 
@@ -177,4 +179,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**Built with ❤️ using feature-first architecture**
+**Built with ❤️ using feature-first architecture - Ready to use React template**

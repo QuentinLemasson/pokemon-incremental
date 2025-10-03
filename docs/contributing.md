@@ -12,8 +12,8 @@
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/your-username/galipette-portal.git
-cd galipette-portal
+git clone https://github.com/your-username/kaptain-react-template.git
+cd kaptain-react-template
 
 # Install dependencies
 npm install
@@ -89,10 +89,7 @@ interface ComponentProps {
   onAction?: () => void;
 }
 
-export const Component: React.FC<ComponentProps> = ({
-  title,
-  onAction,
-}) => {
+export const Component: React.FC<ComponentProps> = ({ title, onAction }) => {
   return (
     <div>
       <h1>{title}</h1>
@@ -373,4 +370,4 @@ Any other context about the feature request
 - Maintainers are listed in README
 - Community feedback is valued
 
-Thank you for contributing to Galipette Portal! Your contributions help make this project better for everyone.
+Thank you for contributing to Kaptain's React Template! Your contributions help make this template better for everyone.

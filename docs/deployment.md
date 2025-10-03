@@ -1,6 +1,6 @@
-# Container Setup for Galipette Portal
+# Container Setup for Kaptain's React Template
 
-This document explains how to run the Galipette Portal application using Docker or Podman.
+This document explains how to run the Kaptain's React Template application using Docker or Podman.
 
 ## Prerequisites
 
@@ -63,10 +63,10 @@ Since you're using Podman Desktop, here are the specific commands for your setup
 
 ```bash
 # Build
-podman build -t galipette-portal .
+podman build -t kaptain-react-template .
 
 # Run
-podman run -p 3000:80 galipette-portal
+podman run -p 3000:80 kaptain-react-template
 
 # Or with podman-compose
 podman-compose up --build
@@ -76,10 +76,10 @@ podman-compose up --build
 
 ```bash
 # Build development image
-podman build -f Dockerfile.dev -t galipette-portal-dev .
+podman build -f Dockerfile.dev -t kaptain-react-template-dev .
 
 # Run with volume mounting for hot reload (interactive mode)
-podman run -it --name galipette-portal-dev -p 5173:5173 -v "$(Get-Location):/app" galipette-portal-dev
+podman run -it --name kaptain-react-template-dev -p 5173:5173 -v "$(Get-Location):/app" kaptain-react-template-dev
 ```
 
 **Note**: The `-it` flag is crucial for keeping the development server running interactively. The container will persist in Podman Desktop after stopping.

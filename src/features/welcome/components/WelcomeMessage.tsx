@@ -13,9 +13,8 @@ export const WelcomeMessage = () => {
           Contributors: {contributors.join(', ')}
         </p>
       )}
-      <p>TEST APP HERE NOW YEAH</p>
       <div className="pt-2">
-        <Button>Test Button</Button>
+        <Button>Get Started</Button>
       </div>
     </div>
   );

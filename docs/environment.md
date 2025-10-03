@@ -51,9 +51,9 @@ export const config = {
   apiTimeout: Number(import.meta.env.VITE_API_TIMEOUT) || 10000,
 
   // App Configuration (from package.json)
-  appName: pkg.displayName || pkg.name || 'Galipette Portal',
+  appName: pkg.displayName || pkg.name || 'Kaptain\'s React Template',
   appVersion: pkg.version || '1.0.0',
-  appDescription: pkg.description || 'TTRPG Platform',
+  appDescription: pkg.description || 'Modern React Template',
 
   // Environment
   environment: import.meta.env.MODE,
@@ -100,7 +100,7 @@ Create `.env.production`:
 
 ```bash
 # Production-specific settings
-VITE_API_URL=https://api.galipette-cendree.com
+VITE_API_URL=https://api.example.com
 VITE_ENABLE_MOCKING=false
 VITE_ENABLE_DEBUG=false
 ```
@@ -168,7 +168,7 @@ export const FeatureFlags = {
 
 ```dockerfile
 # Set environment variables in Dockerfile
-ENV VITE_API_URL=https://api.galipette-cendree.com
+ENV VITE_API_URL=https://api.example.com
 ENV VITE_ENABLE_ANALYTICS=true
 ENV VITE_ENABLE_MOCKING=false
 ```
@@ -179,10 +179,10 @@ ENV VITE_ENABLE_MOCKING=false
 # docker-compose.yml
 version: '3.8'
 services:
-  galipette-portal:
+  kaptain-react-template:
     build: .
     environment:
-      - VITE_API_URL=https://api.galipette-cendree.com
+      - VITE_API_URL=https://api.example.com
       - VITE_ENABLE_ANALYTICS=true
     env_file:
       - .env.production

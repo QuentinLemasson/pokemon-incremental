@@ -1,8 +1,8 @@
 {
-  "name": "galipette-portal",
+  "name": "kaptain-react-template",
   "version": "0.0.1",
-  "displayName": "Galipette Portal",
-  "description": "A global application for the Galipette Cendree TTRPG platform",
+  "displayName": "Kaptain's React Template",
+  "description": "A modern React + TypeScript template with feature-first architecture",
   "author": {
     "name": "Quentin Lemasson",
     "email": "q.v.lemasson@gmail.com"
@@ -20,10 +20,12 @@
     "url": "/tbd"
   },
   "keywords": [
-    "galipette",
-    "cendree",
-    "ttrpg",
-    "portal"
+    "react",
+    "typescript",
+    "template",
+    "vite",
+    "tailwind",
+    "shadcn"
   ],
   "private": true,
   "type": "module",
@@ -39,15 +41,15 @@
     "test:coverage": "vitest --coverage",
     "test:run": "vitest run",
     "type-check": "tsc --noEmit",
-    "docker:build": "docker build -t galipette-portal .",
-    "docker:run": "docker run --name galipette-portal -p 3000:80 galipette-portal",
-    "docker:dev": "docker build -f Dockerfile.dev -t galipette-portal-dev . && docker run --name galipette-portal-dev -p 5173:5173 -v $(pwd):/app galipette-portal-dev",
-    "podman:build": "podman build -t galipette-portal .",
-    "podman:run": "podman run --name galipette-portal -p 3000:80 galipette-portal",
+    "docker:build": "docker build -t kaptain-react-template .",
+    "docker:run": "docker run --name kaptain-react-template -p 3000:80 kaptain-react-template",
+    "docker:dev": "docker build -f Dockerfile.dev -t kaptain-react-template-dev . && docker run --name kaptain-react-template-dev -p 5173:5173 -v $(pwd):/app kaptain-react-template-dev",
+    "podman:build": "podman build -t kaptain-react-template .",
+    "podman:run": "podman run --name kaptain-react-template -p 3000:80 kaptain-react-template",
     "podman:dev": "powershell -ExecutionPolicy Bypass -File dev.ps1",
     "podman:compose": "podman-compose up --build",
-    "container:build": "podman build -t galipette-portal .",
-    "container:run": "podman run --name galipette-portal -p 3000:80 galipette-portal",
+    "container:build": "podman build -t kaptain-react-template .",
+    "container:run": "podman run --name kaptain-react-template -p 3000:80 kaptain-react-template",
     "container:dev": "powershell -ExecutionPolicy Bypass -File dev.ps1",
     "container:compose": "podman-compose up --build"
   },

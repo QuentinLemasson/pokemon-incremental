@@ -13,7 +13,7 @@
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd galipette-portal
+cd kaptain-react-template
 
 # Install dependencies
 npm install
@@ -216,7 +216,7 @@ VITE_API_URL=http://localhost:3001
 VITE_API_TIMEOUT=10000
 
 # App Configuration
-VITE_APP_NAME=Galipette Portal
+VITE_APP_NAME=Kaptain's React Template
 VITE_APP_VERSION=1.0.0
 
 # Features
