@@ -1,16 +1,17 @@
+import { Frame } from '@/common/components/Frame';
 import { useGameStore } from '@/features/store/gameStore';
 
 export const CombatView = () => {
   const { pendingEncounter, clearEncounter } = useGameStore();
 
   if (!pendingEncounter) {
-    return <div id="combat-view-main">No combat (select a hex)</div>;
+    return <Frame id="combat-view-main">No combat (select a hex)</Frame>;
   }
 
   const { player, enemy, hexId } = pendingEncounter;
 
   return (
-    <div id="combat-view-main">
+    <Frame id="combat-view-main">
       <div>
         <strong>Pending encounter</strong> (hex: {hexId})
       </div>
@@ -51,6 +52,6 @@ export const CombatView = () => {
           (Combat not started yet — no ticking)
         </span>
       </div>
-    </div>
+    </Frame>
   );
 };

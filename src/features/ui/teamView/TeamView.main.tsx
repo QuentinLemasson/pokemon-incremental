@@ -1,10 +1,11 @@
+import { Frame } from '@/common/components/Frame';
 import { useGameStore } from '@/features/store/gameStore';
 
 export const TeamView = () => {
   const { playerPokemon } = useGameStore();
 
   return (
-    <div id="team-view-main">
+    <Frame id="team-view-main">
       <div>
         <strong>Team</strong>
       </div>
@@ -19,6 +20,6 @@ export const TeamView = () => {
         Types: {playerPokemon.type[0]}
         {playerPokemon.type[1] ? `/${playerPokemon.type[1]}` : ''}
       </div>
-    </div>
+    </Frame>
   );
 };

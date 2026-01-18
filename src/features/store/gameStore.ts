@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Game } from '../engine/game/game';
 import { Combatant } from '../engine/combat/Combatant';
+import { CombatLog } from '../engine/combat/CombatLog';
 import type { Pokemon } from '../engine/pokemon/pokemon';
 import {
   DEFAULT_ENEMY_POKEMON_POOL,
@@ -26,6 +27,8 @@ export interface GameState {
   version: number; // Version counter to force re-renders when game state changes
   playerPokemon: Pokemon;
   enemyPokemonPool: Pokemon[];
+  log: CombatLog;
+  logSequence: number;
   pendingEncounter: PendingEncounter | null;
   beginEncounter: (hexId: string) => void;
   clearEncounter: () => void;
@@ -36,12 +39,15 @@ export const useGameStore = create<GameState>(set => {
   const game = new Game();
   const playerPokemon = DEFAULT_PLAYER_POKEMON;
   const enemyPokemonPool = DEFAULT_ENEMY_POKEMON_POOL;
+  const log = new CombatLog();
 
   return {
     game,
     version: 0,
     playerPokemon,
     enemyPokemonPool,
+    log,
+    logSequence: 0,
     pendingEncounter: null,
 
     beginEncounter: (hexId: string) => {
@@ -54,6 +60,13 @@ export const useGameStore = create<GameState>(set => {
             Math.floor(Math.random() * state.enemyPokemonPool.length)
           ];
 
+        const nextSequence = state.logSequence + 1;
+        state.log.push({
+          type: 'system',
+          sequence: nextSequence,
+          message: `Encounter created on ${hexId}`,
+        });
+
         return {
           ...state,
           pendingEncounter: {
@@ -61,17 +74,28 @@ export const useGameStore = create<GameState>(set => {
             player: new Combatant({ pokemon: state.playerPokemon }),
             enemy: new Combatant({ pokemon: enemyTemplate }),
           },
-          version: state.version + 1,
+          logSequence: nextSequence,
+          version: state.version + 1, // force re-render (log is mutable)
         };
       });
     },
 
     clearEncounter: () => {
-      set(state => ({
-        ...state,
-        pendingEncounter: null,
-        version: state.version + 1,
-      }));
+      set(state => {
+        const nextSequence = state.logSequence + 1;
+        state.log.push({
+          type: 'system',
+          sequence: nextSequence,
+          message: 'Encounter closed',
+        });
+
+        return {
+          ...state,
+          pendingEncounter: null,
+          logSequence: nextSequence,
+          version: state.version + 1, // force re-render (log is mutable)
+        };
+      });
     },
   };
 });

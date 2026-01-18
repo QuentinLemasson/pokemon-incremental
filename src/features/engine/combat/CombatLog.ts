@@ -7,6 +7,18 @@
  */
 export type CombatLogEvent =
   | {
+      /**
+       * Engine/system message (non-simulation).
+       *
+       * Use this for UX/debug messages emitted by the game layer
+       * (e.g. encounter created/closed) before the combat tick loop exists.
+       */
+      type: 'system';
+      /** Monotonic sequence (store-controlled), useful for ordering. */
+      sequence: number;
+      message: string;
+    }
+  | {
       type: 'combat_start';
       tick: number;
       elapsedSeconds: number;
