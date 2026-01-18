@@ -29,13 +29,26 @@ export type BaseStats = {
   spd: number;
 };
 
+/**
+ * Immutable Pokémon template used by the engine.
+ *
+ * Role (P1 prototype):
+ * - Contains identity, types, level, and base stats.
+ * - Contains **no combat timers**, **no combat logic**, and **no mutable combat state**.
+ *
+ * Mutable per-combat state lives in `Combatant` (current HP, cooldowns, etc.).
+ */
 export class Pokemon {
-  id: string;
-  name: string;
-  type: PokemonType;
-  level: number;
-  baseStats: BaseStats;
-  currentHp: number;
+  /** Stable identifier (e.g. Pokédex id or internal id). */
+  readonly id: string;
+  /** Display name. */
+  readonly name: string;
+  /** Pokémon types (primary, secondary or null). */
+  readonly type: PokemonType;
+  /** Level used for scaling (prototype may keep this simple). */
+  readonly level: number;
+  /** Base stats template. */
+  readonly baseStats: BaseStats;
 
   constructor({
     id,
@@ -55,6 +68,5 @@ export class Pokemon {
     this.type = type;
     this.level = level;
     this.baseStats = baseStats;
-    this.currentHp = baseStats.hp;
   }
 }

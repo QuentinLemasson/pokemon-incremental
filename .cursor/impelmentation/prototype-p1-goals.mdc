@@ -1,0 +1,348 @@
+---
+alwaysApply: false
+---
+
+This rule describe the objectives to validate the first proptype of the app
+
+# Prototype Combat Implementation Guide
+
+**Incremental / Auto-Battler – 20 ticks per second**
+
+This document describes **how to implement a minimal, scalable combat prototype** using a **tick-based game engine (20 ticks/sec)**, suitable for web-based incremental and auto-battler games.
+
+The goal is **not realism**, but **architectural correctness** and **future-proofing**.
+
+---
+
+## 1. Design Goals
+
+* Deterministic combat
+* No real-time input during combat
+* Engine-driven logic, UI-driven display
+* No gameplay logic inside React
+* Easily extensible (moves, types, teams, scaling)
+
+---
+
+## 2. Core Concepts
+
+### Tick-Based Simulation
+
+* The engine runs at **20 ticks per second**
+* Each tick represents **50 ms**
+* All gameplay logic advances only during ticks
+
+This avoids:
+
+* Frame-based instability
+* React-driven logic
+* Timing drift across devices
+
+---
+
+## 3. Class Responsibilities (Minimal Set)
+
+### Pokemon
+
+**Role:** immutable combat template
+
+Responsibilities:
+
+* Base stats
+* Level
+* Types
+* Identity
+
+Constraints:
+
+* No timers
+* No combat logic
+* No UI awareness
+
+---
+
+### Combatant
+
+**Role:** per-combat mutable state
+
+Wraps a Pokémon and adds:
+
+* Current HP
+* Attack cooldown timer
+* Alive / defeated status
+
+Rules:
+
+* Exists only during combat
+* One instance per Pokémon per combat
+* No persistence outside combat
+
+---
+
+### Combat
+
+**Role:** combat orchestrator
+
+Responsibilities:
+
+* Owns both combatants
+* Advances time via `tick(dt)`
+* Resolves attacks
+* Detects combat end
+* Produces a `CombatResult`
+
+Rules:
+
+* No map knowledge
+* No UI knowledge
+* No side effects outside itself
+
+---
+
+### CombatResult
+
+**Role:** outcome container
+
+Contains:
+
+* Victory / defeat
+* Combat duration
+* (Later) rewards, logs, statistics
+
+This object is consumed by the game engine, not the UI.
+
+---
+
+## 4. Time & Tick Model
+
+### Engine Clock
+
+* Tick rate: **20 ticks/sec**
+* Fixed delta: **0.05 seconds**
+
+The engine loop:
+
+1. Accumulate elapsed real time
+2. Process as many ticks as needed
+3. Clamp to avoid spiral of death
+
+**Never rely on `setTimeout` or React effects for gameplay.**
+
+---
+
+## 5. Attack System (Ultra Simple)
+
+### Attack Model
+
+* Each combatant has:
+
+  * `attackCooldownRemaining`
+  * `attackCooldownTotal` (e.g. 1 second)
+
+### Flow
+
+1. Cooldown decreases each tick
+2. When cooldown ≤ 0:
+
+   * Resolve an attack
+   * Reset cooldown
+
+### Damage Rules (Prototype)
+
+* Based on attacker ATK vs defender DEF
+* Damage must always be ≥ 1
+* No crits, no types, no misses
+
+Purpose:
+
+* Validate timing
+* Validate scaling
+* Validate UI synchronization
+
+---
+
+## 6. Progress Bar Logic
+
+### Engine Side
+
+The engine exposes:
+
+* Cooldown remaining
+* Cooldown total
+
+No percentages.
+No animation logic.
+
+---
+
+### UI Side
+
+The UI:
+
+* Computes progress ratio
+* Animates visually
+* Never modifies timers
+
+Formula:
+
+```
+progress = 1 - (remaining / total)
+```
+
+The bar is **purely representational**.
+
+---
+
+## 7. Combat Lifecycle
+
+### Start
+
+Triggered by the engine:
+
+* Player explores a hex
+* Engine creates a Combat instance
+* Combat becomes the active session
+
+### Update
+
+* Engine ticks at 20 TPS
+* Combat updates internally
+* UI re-renders at a lower rate (5–10 FPS is enough)
+
+### End
+
+When one combatant reaches 0 HP:
+
+* Combat produces a CombatResult
+* Combat is disposed
+* Engine processes the result
+
+---
+
+## 8. World Integration (Hex Exploration)
+
+### Rule
+
+**Combat never modifies the world directly.**
+
+Correct flow:
+
+```
+Hex clicked
+→ Engine.startCombat(hexId)
+→ Combat runs
+→ CombatResult returned
+→ Engine.applyCombatResult(hexId)
+→ Hex marked explored
+```
+
+Benefits:
+
+* Replayable combats
+* Offline simulation
+* Future defeat handling
+* Clean separation of concerns
+
+---
+
+## 9. Store Integration Pattern
+
+### Store Responsibilities
+
+* Hold a reference to the engine
+* Expose:
+
+  * current combat (or null)
+  * user intentions (explore, close combat)
+* Trigger UI refreshes
+
+### Store Anti-Responsibilities
+
+* No damage calculations
+* No timers
+* No combat resolution
+
+The store is a **facade**, not a brain.
+
+---
+
+## 10. React UI Structure
+
+### Recommended Components
+
+**MapView**
+
+* Displays hexes
+* Dispatches exploration intent
+
+**CombatBox**
+
+* Visible only during combat
+* Displays:
+
+  * HP bars
+  * Attack cooldown bars
+* Zero gameplay logic
+
+**CombatLog (optional)**
+
+* Debug tool
+* Strongly recommended during development
+
+---
+
+## 11. Update Frequencies (Best Practice)
+
+| System       | Frequency                   |
+| ------------ | --------------------------- |
+| Engine ticks | 20/sec                      |
+| UI refresh   | 5–10/sec                    |
+| Animations   | CSS / requestAnimationFrame |
+
+This is how most incremental games stay performant.
+
+---
+
+## 12. Common Anti-Patterns to Avoid
+
+* Combat logic inside React components
+* `setInterval` inside UI
+* Damage resolution in render functions
+* Hexes starting combats directly
+* Frame-based damage (DPS per frame)
+
+If you see gameplay logic in JSX, something is wrong.
+
+---
+
+## 13. Why This Scales
+
+This architecture supports later additions:
+
+* Multiple Pokémon per side
+* Status effects
+* Types and resistances
+* Speed-based cooldowns
+* Offline combat resolution
+* Replays and logs
+
+Without refactoring the core loop.
+
+---
+
+## 14. Validation Checklist
+
+Before moving on, verify:
+
+* Combat works with the UI disabled
+* Combat is deterministic
+* Tick rate is stable
+* UI can lag without breaking logic
+* Combat ends cleanly every time
+
+If all are true, the foundation is solid.
+
+---
+
+**Next recommended step:**
+Add a combat log system to validate every tick decision before adding complexity.

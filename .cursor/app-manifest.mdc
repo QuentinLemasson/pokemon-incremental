@@ -50,3 +50,4 @@ Containes shared interfaces, utilities, hooks and atomic components.
 - Each component should be contained
 - Logic belongs to the engine, rendering belong to ui - they shouldn't be mixed and allowed to function without one another
 - Focus on project scalabity and maintainability
+- For clarity and lisibility, each class should have its own file
