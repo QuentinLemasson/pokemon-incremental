@@ -25,13 +25,13 @@ The P1 goal is a minimal, scalable foundation for an incremental/auto-battler:
 #### `Combatant`
 - **Role**: per-combat mutable state.
 - **Wraps**: a `Pokemon` template.
-- **Contains**: `currentHp`, `attackCooldownRemainingSeconds`, `attackCooldownTotalSeconds`.
+- **Contains**: `currentHp`, `gauge`, `gaugeMax` (and derived `gaugeGainPerTick`).
 - **Lifetime**: exists only during combat.
 
 #### `Combat`
 - **Role**: combat orchestrator / simulation.
 - **Owns**: 2 combatants: `player`, `enemy`.
-- **Advances time** only via `tick(dtSeconds)`.
+- **Advances time** only via `tick()` (fixed timestep).
 - **Ends** by producing a `CombatResult`.
 - **No knowledge of**: world/map/hexes, UI, stores.
 

@@ -2,14 +2,20 @@ import type { BaseStats } from '../pokemon/pokemon';
 import { Combatant } from './Combatant';
 import { CombatLog } from './CombatLog';
 import { CombatResult } from './CombatResult';
+import {
+  DEF_REDUCTION_DIVISOR,
+  MAX_ACTIONS_PER_TICK,
+  MIN_DAMAGE,
+} from './gauge.config';
+import { TICK_DURATION } from '../runtime/tick.config';
 
 /**
  * Deterministic tick-based combat orchestrator.
  *
  * Responsibilities (P1 prototype):
  * - Owns player + enemy combatants.
- * - Advances time only via `tick(dtSeconds)` (fixed dt recommended).
- * - Resolves attacks when cooldown reaches 0.
+ * - Advances time only via `tick()` (fixed timestep).
+ * - Resolves attacks using a gauge (ATB-like) system.
  * - Detects combat end and produces a `CombatResult`.
  *
  * Rules:
@@ -51,36 +57,53 @@ export class Combat {
   /**
    * Advances the simulation by a single tick.
    *
-   * @param dtSeconds Fixed tick delta (P1 recommended: 0.05).
    * @returns `CombatResult` when combat ends, otherwise null.
    */
-  tick(dtSeconds: number): CombatResult | null {
+  tick(): CombatResult | null {
     if (this.result) return this.result;
 
     this.tickCount += 1;
-    this.elapsedSeconds += dtSeconds;
+    this.elapsedSeconds += TICK_DURATION / 1000;
 
-    this.player.tick(dtSeconds);
-    this.enemy.tick(dtSeconds);
+    // 1) Gauges advance deterministically (same tick for both).
+    if (this.player.alive) this.player.tickGauge();
+    if (this.enemy.alive) this.enemy.tickGauge();
 
-    // Deterministic resolution order for P1:
-    // - Player attack first, then enemy (if still alive).
-    if (
+    // 2) Resolve actions within the same tick as long as gauge overflows.
+    // Deterministic tie-breaks:
+    // - If both are ready: higher gauge acts first; if equal, player first.
+    let actions = 0;
+    while (
+      actions < MAX_ACTIONS_PER_TICK &&
       this.player.alive &&
-      this.enemy.alive &&
-      this.player.attackCooldownRemainingSeconds <= 0
+      this.enemy.alive
     ) {
-      this.resolveAttack('player', 'enemy');
-      if (!this.enemy.alive) return this.endCombat('player');
-    }
+      const playerReady = this.player.ready;
+      const enemyReady = this.enemy.ready;
 
-    if (
-      this.player.alive &&
-      this.enemy.alive &&
-      this.enemy.attackCooldownRemainingSeconds <= 0
-    ) {
-      this.resolveAttack('enemy', 'player');
-      if (!this.player.alive) return this.endCombat('enemy');
+      if (!playerReady && !enemyReady) break;
+
+      let attackerSide: 'player' | 'enemy';
+      if (playerReady && enemyReady) {
+        if (this.player.gauge === this.enemy.gauge) attackerSide = 'player';
+        else
+          attackerSide =
+            this.player.gauge > this.enemy.gauge ? 'player' : 'enemy';
+      } else {
+        attackerSide = playerReady ? 'player' : 'enemy';
+      }
+
+      if (attackerSide === 'player') {
+        this.player.consumeGaugeForAction();
+        this.resolveAttack('player', 'enemy');
+        if (!this.enemy.alive) return this.endCombat('player');
+      } else {
+        this.enemy.consumeGaugeForAction();
+        this.resolveAttack('enemy', 'player');
+        if (!this.player.alive) return this.endCombat('enemy');
+      }
+
+      actions += 1;
     }
 
     return null;
@@ -115,8 +138,6 @@ export class Combat {
     );
     const defenderHpAfter = defender.receiveDamage(damage);
 
-    attacker.resetCooldown();
-
     this.log.push({
       type: 'attack',
       tick: this.tickCount,
@@ -141,6 +162,6 @@ function computePrototypeDamage(
   attacker: BaseStats,
   defender: BaseStats
 ): number {
-  const raw = attacker.atk - Math.floor(defender.def / 2);
-  return Math.max(1, raw);
+  const raw = attacker.atk - Math.floor(defender.def / DEF_REDUCTION_DIVISOR);
+  return Math.max(MIN_DAMAGE, raw);
 }

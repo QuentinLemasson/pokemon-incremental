@@ -3,6 +3,7 @@ import { Game } from '../engine/game/game';
 import { Combatant } from '../engine/combat/Combatant';
 import { CombatLog } from '../engine/combat/CombatLog';
 import { engineRunner } from '../engine/runtime/engine-runner';
+import { Combat } from '../engine/combat/CombatSession';
 import type { Pokemon } from '../engine/pokemon/pokemon';
 import {
   DEFAULT_ENEMY_POKEMON_POOL,
@@ -12,6 +13,7 @@ import {
 declare global {
   // Prevent duplicate subscriptions during Vite HMR.
   var __POKE_RPG_TPS_BRIDGE_ACTIVE__: boolean | undefined;
+  var __POKE_RPG_TICK_BRIDGE_ACTIVE__: boolean | undefined;
 }
 
 /**
@@ -37,7 +39,10 @@ export interface GameState {
   logSequence: number;
   tps: number;
   pendingEncounter: PendingEncounter | null;
+  combat: Combat | null;
+  combatRunning: boolean;
   beginEncounter: (hexId: string) => void;
+  startCombat: () => void;
   clearEncounter: () => void;
 }
 
@@ -57,6 +62,29 @@ export const useGameStore = create<GameState>(set => {
     });
   }
 
+  // Bridge engine ticks to the store (combat simulation).
+  if (!globalThis.__POKE_RPG_TICK_BRIDGE_ACTIVE__) {
+    globalThis.__POKE_RPG_TICK_BRIDGE_ACTIVE__ = true;
+    engineRunner.subscribeTick(() => {
+      set(state => {
+        if (!state.combat || !state.combatRunning) return state;
+
+        const result = state.combat.tick();
+        if (result) {
+          // Combat ended this tick.
+          return {
+            ...state,
+            combatRunning: false,
+            version: state.version + 1,
+          };
+        }
+
+        // Force UI refresh (P1: OK to refresh at 20Hz for now).
+        return { ...state, version: state.version + 1 };
+      });
+    });
+  }
+
   return {
     game,
     version: 0,
@@ -66,6 +94,8 @@ export const useGameStore = create<GameState>(set => {
     logSequence: 0,
     tps: 0,
     pendingEncounter: null,
+    combat: null,
+    combatRunning: false,
 
     beginEncounter: (hexId: string) => {
       // Do not start/tick combat yet: only create the two combatants.
@@ -84,16 +114,30 @@ export const useGameStore = create<GameState>(set => {
           message: `Encounter created on ${hexId}`,
         });
 
+        const player = new Combatant({ pokemon: state.playerPokemon });
+        const enemy = new Combatant({ pokemon: enemyTemplate });
+        const combat = new Combat({ player, enemy, log: state.log });
+
         return {
           ...state,
           pendingEncounter: {
             hexId,
-            player: new Combatant({ pokemon: state.playerPokemon }),
-            enemy: new Combatant({ pokemon: enemyTemplate }),
+            player,
+            enemy,
           },
+          combat,
+          combatRunning: false,
           logSequence: nextSequence,
           version: state.version + 1, // force re-render (log is mutable)
         };
+      });
+    },
+
+    startCombat: () => {
+      set(state => {
+        if (!state.combat || state.combat.ended) return state;
+        if (state.combatRunning) return state;
+        return { ...state, combatRunning: true, version: state.version + 1 };
       });
     },
 
@@ -109,6 +153,8 @@ export const useGameStore = create<GameState>(set => {
         return {
           ...state,
           pendingEncounter: null,
+          combat: null,
+          combatRunning: false,
           logSequence: nextSequence,
           version: state.version + 1, // force re-render (log is mutable)
         };

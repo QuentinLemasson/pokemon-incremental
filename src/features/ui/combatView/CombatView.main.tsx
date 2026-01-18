@@ -2,13 +2,21 @@ import { Frame } from '@/common/components/Frame';
 import { useGameStore } from '@/features/store/gameStore';
 
 export const CombatView = () => {
-  const { pendingEncounter, clearEncounter } = useGameStore();
+  const {
+    pendingEncounter,
+    clearEncounter,
+    startCombat,
+    combat,
+    combatRunning,
+  } = useGameStore();
 
   if (!pendingEncounter) {
     return <Frame id="combat-view-main">No combat (select a hex)</Frame>;
   }
 
   const { player, enemy, hexId } = pendingEncounter;
+  const ended = combat?.ended ?? false;
+  const result = combat?.getResult();
 
   return (
     <Frame id="combat-view-main">
@@ -26,8 +34,8 @@ export const CombatView = () => {
             HP: {player.currentHp}/{player.pokemon.baseStats.hp}
           </div>
           <div>
-            CD: {player.attackCooldownRemainingSeconds.toFixed(2)}/
-            {player.attackCooldownTotalSeconds.toFixed(2)}s
+            Gauge: {player.gauge.toFixed(2)} / {player.gaugeMax.toFixed(2)} (+
+            {player.gaugeGainPerTick.toFixed(2)}/tick)
           </div>
         </div>
 
@@ -40,17 +48,32 @@ export const CombatView = () => {
             HP: {enemy.currentHp}/{enemy.pokemon.baseStats.hp}
           </div>
           <div>
-            CD: {enemy.attackCooldownRemainingSeconds.toFixed(2)}/
-            {enemy.attackCooldownTotalSeconds.toFixed(2)}s
+            Gauge: {enemy.gauge.toFixed(2)} / {enemy.gaugeMax.toFixed(2)} (+
+            {enemy.gaugeGainPerTick.toFixed(2)}/tick)
           </div>
         </div>
       </div>
 
       <div style={{ marginTop: 8 }}>
-        <button onClick={clearEncounter}>Close</button>
-        <span style={{ marginLeft: 8 }}>
-          (Combat not started yet — no ticking)
-        </span>
+        <button
+          onClick={startCombat}
+          disabled={combatRunning || ended || !combat}
+        >
+          {combatRunning ? 'Running…' : ended ? 'Ended' : 'Start combat'}
+        </button>
+        {ended && result ? (
+          <span style={{ marginLeft: 8 }}>
+            Result: {result.victory ? 'Victory' : 'Defeat'} in {result.ticks}{' '}
+            ticks
+          </span>
+        ) : (
+          <span style={{ marginLeft: 8 }}>
+            (Simulation runs on ticks once started)
+          </span>
+        )}
+        <div style={{ marginTop: 8 }}>
+          <button onClick={clearEncounter}>Close</button>
+        </div>
       </div>
     </Frame>
   );

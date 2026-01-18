@@ -1,11 +1,15 @@
 import type { Pokemon } from '../pokemon/pokemon';
+import {
+  computeGaugeGainPerTickFromSpeed,
+  computeGaugeMaxFromSpeed,
+} from './gauge.config';
 
 /**
  * Per-combat mutable state for a Pokémon.
  *
  * Role (P1 prototype):
  * - Wraps a `Pokemon` template.
- * - Holds mutable combat state: HP and attack cooldown timers.
+ * - Holds mutable combat state: HP and gauge (ATB-like system).
  * - Exists only during combat (no persistence outside the combat session).
  */
 export class Combatant {
@@ -15,20 +19,31 @@ export class Combatant {
   /** Current HP during this combat. */
   currentHp: number;
 
-  /** Remaining cooldown in seconds until next attack. */
-  attackCooldownRemainingSeconds: number;
-  /** Total cooldown duration in seconds (used for UI progress bars). */
-  readonly attackCooldownTotalSeconds: number;
+  /**
+   * Current gauge value.
+   *
+   * When `gauge >= gaugeMax`, the combatant can act (attack).
+   * Overflow carries over after acting.
+   */
+  gauge: number;
 
-  constructor(params: {
-    pokemon: Pokemon;
-    /** Defaults to 1 second. */
-    attackCooldownTotalSeconds?: number;
-  }) {
+  /**
+   * Gauge threshold required to perform an action.
+   * (Configurable via `gauge.config.ts`.)
+   */
+  readonly gaugeMax: number;
+
+  /** Cached per-tick gain derived from the Pokémon speed stat. */
+  readonly gaugeGainPerTick: number;
+
+  constructor(params: { pokemon: Pokemon }) {
     this.pokemon = params.pokemon;
     this.currentHp = params.pokemon.baseStats.hp;
-    this.attackCooldownTotalSeconds = params.attackCooldownTotalSeconds ?? 1;
-    this.attackCooldownRemainingSeconds = this.attackCooldownTotalSeconds;
+    this.gauge = 0;
+    this.gaugeMax = computeGaugeMaxFromSpeed(params.pokemon.baseStats.spd);
+    this.gaugeGainPerTick = computeGaugeGainPerTickFromSpeed(
+      params.pokemon.baseStats.spd
+    );
   }
 
   /** True if HP > 0. */
@@ -37,19 +52,24 @@ export class Combatant {
   }
 
   /**
-   * Decreases cooldown by dt seconds. Cooldown is clamped to 0.
-   * @param dtSeconds Fixed tick delta (P1: 0.05s).
+   * Advances gauge by one tick.
+   * (Gauge gain is fixed per combatant and derived from speed.)
    */
-  tick(dtSeconds: number) {
-    this.attackCooldownRemainingSeconds = Math.max(
-      0,
-      this.attackCooldownRemainingSeconds - dtSeconds
-    );
+  tickGauge() {
+    this.gauge += this.gaugeGainPerTick;
   }
 
-  /** Resets the cooldown to its total duration. */
-  resetCooldown() {
-    this.attackCooldownRemainingSeconds = this.attackCooldownTotalSeconds;
+  /** True if this combatant can act right now. */
+  get ready(): boolean {
+    return this.gauge >= this.gaugeMax;
+  }
+
+  /**
+   * Consumes gauge for a single action, preserving overflow.
+   * Should only be called if `ready` is true.
+   */
+  consumeGaugeForAction() {
+    this.gauge -= this.gaugeMax;
   }
 
   /**
