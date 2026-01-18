@@ -2,11 +2,17 @@ import { create } from 'zustand';
 import { Game } from '../engine/game/game';
 import { Combatant } from '../engine/combat/Combatant';
 import { CombatLog } from '../engine/combat/CombatLog';
+import { engineRunner } from '../engine/runtime/engine-runner';
 import type { Pokemon } from '../engine/pokemon/pokemon';
 import {
   DEFAULT_ENEMY_POKEMON_POOL,
   DEFAULT_PLAYER_POKEMON,
 } from '../engine/pokemon/presets';
+
+declare global {
+  // Prevent duplicate subscriptions during Vite HMR.
+  var __POKE_RPG_TPS_BRIDGE_ACTIVE__: boolean | undefined;
+}
 
 /**
  * Pending (not-running) combat session created from a map click.
@@ -29,6 +35,7 @@ export interface GameState {
   enemyPokemonPool: Pokemon[];
   log: CombatLog;
   logSequence: number;
+  tps: number;
   pendingEncounter: PendingEncounter | null;
   beginEncounter: (hexId: string) => void;
   clearEncounter: () => void;
@@ -41,6 +48,15 @@ export const useGameStore = create<GameState>(set => {
   const enemyPokemonPool = DEFAULT_ENEMY_POKEMON_POOL;
   const log = new CombatLog();
 
+  // Start the engine runner once and bridge its TPS to the store (UI-friendly).
+  engineRunner.start();
+  if (!globalThis.__POKE_RPG_TPS_BRIDGE_ACTIVE__) {
+    globalThis.__POKE_RPG_TPS_BRIDGE_ACTIVE__ = true;
+    engineRunner.subscribeTps(tps => {
+      set({ tps });
+    });
+  }
+
   return {
     game,
     version: 0,
@@ -48,6 +64,7 @@ export const useGameStore = create<GameState>(set => {
     enemyPokemonPool,
     log,
     logSequence: 0,
+    tps: 0,
     pendingEncounter: null,
 
     beginEncounter: (hexId: string) => {
