@@ -1,9 +1,19 @@
-import type { Combatant } from '@/features/engine/combat/Combatant';
+// import type { Combatant } from '@/features/engine/combat/Combatant';
 import { StatBar } from './StatBar';
 
 export type CombatantCardProps = {
   sideLabel: 'Player' | 'Enemy';
-  combatant: Combatant;
+  // TODO : replace with Combatant type surcharge
+  combatant: {
+    name: string;
+    level: number;
+    hp: number;
+    hpMax: number;
+    gauge: number;
+    gaugeMax: number;
+    gaugeGainPerTick: number;
+  };
+  speed: number;
 };
 
 /**
@@ -11,31 +21,31 @@ export type CombatantCardProps = {
  *
  * Presentational only: no gameplay logic.
  */
-export const CombatantCard = ({ sideLabel, combatant }: CombatantCardProps) => {
-  const { pokemon } = combatant;
-
+export const CombatantCard = ({
+  sideLabel,
+  combatant,
+  speed,
+}: CombatantCardProps) => {
   return (
     <div className="rounded-lg border border-slate-700/70 bg-black/20 p-3 ring-1 ring-white/5">
       <div className="flex items-center justify-between">
         <div className="text-sm">
           <div className="text-slate-300 text-xs">{sideLabel}</div>
           <div className="font-semibold tracking-wide">
-            {pokemon.name}{' '}
+            {combatant.name}{' '}
             <span className="text-slate-300 font-normal">
-              Lv {pokemon.level}
+              Lv {combatant.level}
             </span>
           </div>
         </div>
-        <div className="text-[11px] font-mono text-slate-300">
-          SPD {pokemon.baseStats.spd}
-        </div>
+        <div className="text-[11px] font-mono text-slate-300">SPD {speed}</div>
       </div>
 
       <div className="mt-3 space-y-3">
         <StatBar
           label="HP"
-          current={combatant.currentHp}
-          max={pokemon.baseStats.hp}
+          current={combatant.hp}
+          max={combatant.hpMax}
           fillClassName="bg-gradient-to-r from-emerald-600 via-emerald-500 to-lime-400"
         />
 

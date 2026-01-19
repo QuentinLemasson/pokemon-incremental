@@ -1,20 +1,20 @@
 import { Frame } from '@/common/components/Frame';
-import type { Hex } from '@/features/engine/world/hex';
-import { useGameStore } from '@/features/store/gameStore';
+import { useCombatStore } from '@/features/store/combatStore';
+import { useWorldStore } from '@/features/store/worldStore';
 
 export const MapView = () => {
-  const { game, beginEncounter, pendingEncounter } = useGameStore();
+  const { hexes, onHexClicked } = useWorldStore();
+  const encounterHexId = useCombatStore(s => s.encounter?.hexId ?? null);
 
   return (
     <Frame id="map-view-main">
-      {game.maps.map((hex: Hex) => (
+      {hexes.map(hex => (
         <button
           key={hex.id}
-          onClick={() => beginEncounter(hex.id)}
-          disabled={pendingEncounter !== null}
+          onClick={() => onHexClicked(hex.id)}
+          disabled={encounterHexId !== null}
         >
-          {hex.id}{' '}
-          {pendingEncounter?.hexId === hex.id ? '▶' : hex.explored ? '✓' : '?'}
+          {hex.id} {encounterHexId === hex.id ? '▶' : hex.explored ? '✓' : '?'}
         </button>
       ))}
     </Frame>

@@ -2,9 +2,9 @@ import { CombatView } from '@/features/ui/combatView/CombatView.main';
 import { LogView } from '@/features/ui/logView/LogView.main';
 import { MapView } from '@/features/ui/mapView/MapView.main';
 import { TeamView } from '@/features/ui/teamView/TeamView.main';
-import { useGameStore } from '@/features/store/gameStore';
+import { useEngineStore } from '@/features/store/engineStore';
 export default function App() {
-  const tps = useGameStore(s => s.tps);
+  const tps = useEngineStore(s => s.tps);
   return (
     <main className="min-h-screen grid grid-rows-[80px_1fr_40px] p-6 gap-4">
       <header className="flex items-center justify-between">

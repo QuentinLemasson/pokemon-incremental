@@ -1,8 +1,8 @@
 import { Frame } from '@/common/components/Frame';
-import { useGameStore } from '@/features/store/gameStore';
+import { useEngineStore } from '@/features/store/engineStore';
 
 export const TeamView = () => {
-  const { playerPokemon } = useGameStore();
+  const playerPokemon = useEngineStore(s => s.playerPokemon);
 
   return (
     <Frame id="team-view-main">
