@@ -1,8 +1,13 @@
 export type WorldGenConfig = {
   /**
-   * Hexagon “radius” (distance from center to corners) in hex steps.
-   *
-   * Radius 0 => only the center hex (0,0).
+   * World radius (hex distance from center to corners).
    */
   radius: number;
+
+  /**
+   * Optional hardcaps on tile count (used to clamp radius).
+   * Useful to ensure stable/controlled world size across seeds.
+   */
+  minTiles?: number;
+  maxTiles?: number;
 };
