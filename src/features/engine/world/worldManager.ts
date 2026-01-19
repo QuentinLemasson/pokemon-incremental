@@ -1,4 +1,5 @@
-import { generateMaps } from './generator';
+import { DEFAULT_WORLD_GENERATION, generateMaps } from './generator';
+import { createSeedString } from './generation/seed';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
 
@@ -19,7 +20,21 @@ export class WorldManager {
   private readonly hexIds: string[];
 
   constructor() {
-    const hexes = generateMaps();
+    // Seed is generated once per browser session (HMR-safe).
+    const seed =
+      globalThis.__POKE_RPG_WORLD_SEED__ ??
+      (globalThis.__POKE_RPG_WORLD_SEED__ = createSeedString());
+
+    const hexes = generateMaps({
+      ...DEFAULT_WORLD_GENERATION,
+      seed,
+      generator: {
+        ...DEFAULT_WORLD_GENERATION.generator,
+        centeredVoronoiNoise: {
+          ...DEFAULT_WORLD_GENERATION.generator.centeredVoronoiNoise,
+        },
+      },
+    });
     this.hexById = new Map(hexes.map(h => [h.id, h]));
     this.hexIds = hexes.map(h => h.id);
   }
@@ -62,4 +77,8 @@ export class WorldManager {
     hex.cleared = true;
     return true;
   }
+}
+
+declare global {
+  var __POKE_RPG_WORLD_SEED__: string | undefined;
 }
