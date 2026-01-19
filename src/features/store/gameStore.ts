@@ -4,6 +4,7 @@ import { Combatant } from '../engine/combat/Combatant';
 import { CombatLog } from '../engine/combat/CombatLog';
 import { engineRunner } from '../engine/runtime/engine-runner';
 import { Combat } from '../engine/combat/CombatSession';
+import { FIGHTS_TO_CLEAR_HEX } from '../engine/combat/encounter.config';
 import type { Pokemon } from '../engine/pokemon/pokemon';
 import {
   DEFAULT_ENEMY_POKEMON_POOL,
@@ -27,6 +28,8 @@ export type PendingEncounter = {
   hexId: string;
   player: Combatant;
   enemy: Combatant;
+  fightIndex: number;
+  fightTarget: number;
 };
 
 /** Define the shape of your store. */
@@ -67,14 +70,83 @@ export const useGameStore = create<GameState>(set => {
     globalThis.__POKE_RPG_TICK_BRIDGE_ACTIVE__ = true;
     engineRunner.subscribeTick(() => {
       set(state => {
-        if (!state.combat || !state.combatRunning) return state;
+        if (!state.combat || !state.combatRunning || !state.pendingEncounter)
+          return state;
 
         const result = state.combat.tick();
         if (result) {
-          // Combat ended this tick.
+          // Combat ended this tick. If player won, chain fights until threshold.
+          if (result.victory) {
+            const nextFightIndex = state.pendingEncounter.fightIndex + 1;
+
+            // Hex cleared: stop running and mark cleared.
+            if (nextFightIndex > state.pendingEncounter.fightTarget) {
+              const hex = state.game.maps.find(
+                h => h.id === state.pendingEncounter?.hexId
+              );
+              if (hex) hex.cleared = true;
+
+              const nextSequence = state.logSequence + 1;
+              state.log.push({
+                type: 'system',
+                sequence: nextSequence,
+                message: `Hex cleared (${state.pendingEncounter.hexId})`,
+              });
+
+              return {
+                ...state,
+                combatRunning: false,
+                logSequence: nextSequence,
+                version: state.version + 1,
+              };
+            }
+
+            // Spawn next enemy and create a new Combat session.
+            const enemyTemplate =
+              state.enemyPokemonPool[
+                Math.floor(Math.random() * state.enemyPokemonPool.length)
+              ];
+            const newEnemy = new Combatant({ pokemon: enemyTemplate });
+
+            const nextSequence = state.logSequence + 1;
+            state.log.push({
+              type: 'system',
+              sequence: nextSequence,
+              message: `Enemy defeated. Next fight ${nextFightIndex}/${state.pendingEncounter.fightTarget}`,
+            });
+
+            const nextEncounter: PendingEncounter = {
+              ...state.pendingEncounter,
+              enemy: newEnemy,
+              fightIndex: nextFightIndex,
+            };
+
+            return {
+              ...state,
+              pendingEncounter: nextEncounter,
+              combat: new Combat({
+                player: state.pendingEncounter.player, // keep same instance
+                enemy: newEnemy,
+                log: state.log,
+              }),
+              combatRunning: true, // continue seamlessly
+              logSequence: nextSequence,
+              version: state.version + 1,
+            };
+          }
+
+          // Player lost: stop combat; keep encounter open (user can close).
+          const nextSequence = state.logSequence + 1;
+          state.log.push({
+            type: 'system',
+            sequence: nextSequence,
+            message: `Defeat on fight ${state.pendingEncounter.fightIndex}/${state.pendingEncounter.fightTarget}`,
+          });
+
           return {
             ...state,
             combatRunning: false,
+            logSequence: nextSequence,
             version: state.version + 1,
           };
         }
@@ -118,12 +190,17 @@ export const useGameStore = create<GameState>(set => {
         const enemy = new Combatant({ pokemon: enemyTemplate });
         const combat = new Combat({ player, enemy, log: state.log });
 
+        const hex = state.game.maps.find(h => h.id === hexId);
+        if (hex) hex.explored = true;
+
         return {
           ...state,
           pendingEncounter: {
             hexId,
             player,
             enemy,
+            fightIndex: 1,
+            fightTarget: FIGHTS_TO_CLEAR_HEX,
           },
           combat,
           combatRunning: false,

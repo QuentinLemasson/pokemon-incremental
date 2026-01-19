@@ -48,10 +48,10 @@ export const DEFAULT_PLAYER_POKEMON = createPokemon({
   id: 'player-001',
   name: 'Sprout',
   type: mono('grass'),
-  level: 1,
-  hp: 25,
-  atk: 8,
-  def: 6,
+  level: 5,
+  hp: 41,
+  atk: 20,
+  def: 12,
 });
 
 /**
