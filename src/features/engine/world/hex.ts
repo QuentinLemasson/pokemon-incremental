@@ -1,19 +1,17 @@
-export type HexBiome = 'forest' | 'plains' | 'mountain';
+import type { HexCoordinates } from '@/common/types/hex.types';
+import type { HexBiome } from './types';
 
 export class Hex {
   id: string;
   biome: HexBiome;
   explored = false;
   cleared = false;
+  totalPokemonDefeated = 0;
+  coordinates: HexCoordinates;
 
-  constructor(id: string, biome: HexBiome) {
+  constructor(id: string, coordinates: HexCoordinates, biome: HexBiome) {
     this.id = id;
     this.biome = biome;
-  }
-
-  startCombat() {
-    console.log('starting combat', this.id);
-    this.cleared = true;
-    console.log('combat ended', this.id);
+    this.coordinates = coordinates;
   }
 }

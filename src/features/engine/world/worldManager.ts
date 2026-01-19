@@ -1,6 +1,6 @@
 import { generateMaps } from './generator';
 import type { Hex } from './hex';
-import type { WorldHexSnapshot } from '../runtime/engineLoop';
+import type { WorldSnapshot } from '../runtime/engineLoop';
 
 /**
  * WorldManager
@@ -24,20 +24,22 @@ export class WorldManager {
     this.hexIds = hexes.map(h => h.id);
   }
 
-  getSnapshot(): WorldHexSnapshot[] {
-    return this.hexIds.map(id => {
+  getSnapshot(): WorldSnapshot {
+    const byId: WorldSnapshot['byId'] = {};
+
+    for (const id of this.hexIds) {
       const h = this.hexById.get(id);
-      // Should never happen, but keep snapshot generation resilient.
-      if (!h) {
-        return { id, biome: 'unknown', explored: false, cleared: false };
-      }
-      return {
+      if (!h) continue;
+      byId[id] = {
         id: h.id,
         biome: h.biome,
+        coordinates: h.coordinates,
         explored: h.explored,
         cleared: h.cleared,
       };
-    });
+    }
+
+    return { ids: this.hexIds, byId };
   }
 
   /**

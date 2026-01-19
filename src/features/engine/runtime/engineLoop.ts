@@ -6,12 +6,22 @@ import {
 import { FIGHTS_TO_CLEAR_HEX } from '../combat/encounter.config';
 import { WorldManager } from '../world/worldManager';
 import { CombatManager, type EncounterSnapshot } from '../combat/combatManager';
+import type { HexCoordinates } from '@/common/types/hex.types';
 
 export type WorldHexSnapshot = {
   id: string;
   biome: string;
+  coordinates: HexCoordinates;
   explored: boolean;
   cleared: boolean;
+};
+
+/**
+ * Normalized world snapshot for efficient lookup and stable iteration order.
+ */
+export type WorldSnapshot = {
+  ids: string[];
+  byId: Record<string, WorldHexSnapshot>;
 };
 
 type Listener<T> = (payload: T) => void;
@@ -33,7 +43,7 @@ export class EngineLoop {
   private started = false;
 
   private readonly tpsListeners = new Set<Listener<number>>();
-  private readonly worldListeners = new Set<Listener<WorldHexSnapshot[]>>();
+  private readonly worldListeners = new Set<Listener<WorldSnapshot>>();
   private readonly encounterListeners = new Set<
     Listener<EncounterSnapshot | null>
   >();
@@ -71,7 +81,7 @@ export class EngineLoop {
   }
 
   /** Snapshot getters (useful for store initialization). */
-  getWorldSnapshot(): WorldHexSnapshot[] {
+  getWorldSnapshot(): WorldSnapshot {
     return this.worldManager.getSnapshot();
   }
 
@@ -123,7 +133,7 @@ export class EngineLoop {
     return () => this.tpsListeners.delete(listener);
   }
 
-  onWorld(listener: Listener<WorldHexSnapshot[]>) {
+  onWorld(listener: Listener<WorldSnapshot>) {
     this.worldListeners.add(listener);
     return () => this.worldListeners.delete(listener);
   }
