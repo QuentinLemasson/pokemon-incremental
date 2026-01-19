@@ -14,6 +14,8 @@ export const Frame = ({ id, className, children }: FrameProps) => {
       className={cn(
         'frame-component',
         // Game-ish panel: subtle depth, darker surface, stronger border.
+        // Fill parent grid cell and allow internal overflow handling.
+        'w-full h-full min-w-0 min-h-0',
         'relative overflow-hidden rounded-lg border-2 p-4',
         'border-slate-700/80 bg-slate-950/70 text-slate-100',
         'shadow-[0_10px_30px_rgba(0,0,0,0.35)]',

@@ -7,10 +7,11 @@ import { FIGHTS_TO_CLEAR_HEX } from '../combat/encounter.config';
 import { WorldManager } from '../world/worldManager';
 import { CombatManager, type EncounterSnapshot } from '../combat/combatManager';
 import type { HexCoordinates } from '@/common/types/hex.types';
+import type { HexBiome } from '../world/types';
 
 export type WorldHexSnapshot = {
   id: string;
-  biome: string;
+  biome: HexBiome;
   coordinates: HexCoordinates;
   explored: boolean;
   cleared: boolean;
