@@ -2,6 +2,7 @@ import { Hex } from './hex';
 import type { HexCoordinates } from '@/common/types/hex.types';
 import type { HexBiome } from './types';
 import type { WorldGenerationConfig } from './generation/types';
+import { BIOME_IDS } from './biomes';
 import {
   computeVoronoiBiome,
   computeVoronoiShapeScore,
@@ -40,7 +41,7 @@ export const DEFAULT_WORLD_GENERATION: WorldGenerationConfig = {
 export function generateMaps(
   config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
 ): Hex[] {
-  const biomes: HexBiome[] = ['forest', 'plains', 'mountain'];
+  const biomes: HexBiome[] = [...BIOME_IDS];
 
   // Target coverage size (stable across seeds).
   const targetRadius = clampRadiusByTileCaps(

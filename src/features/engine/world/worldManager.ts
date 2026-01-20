@@ -2,6 +2,7 @@ import { DEFAULT_WORLD_GENERATION, generateMaps } from './generator';
 import { createSeedString } from './generation/seed';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
+import type { HexBiome } from './types';
 
 /**
  * WorldManager
@@ -55,6 +56,11 @@ export class WorldManager {
     }
 
     return { ids: this.hexIds, byId };
+  }
+
+  getHexBiome(hexId: string): HexBiome | null {
+    const hex = this.hexById.get(hexId);
+    return hex?.biome ?? null;
   }
 
   /**

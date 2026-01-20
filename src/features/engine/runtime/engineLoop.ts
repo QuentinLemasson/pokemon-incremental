@@ -1,13 +1,12 @@
 import { engineRunner } from './engine-runner';
-import {
-  DEFAULT_ENEMY_POKEMON_POOL,
-  DEFAULT_PLAYER_POKEMON,
-} from '../pokemon/presets';
+import { DEFAULT_PLAYER_POKEMON } from '../pokemon/presets';
 import { FIGHTS_TO_CLEAR_HEX } from '../combat/encounter.config';
 import { WorldManager } from '../world/worldManager';
 import { CombatManager, type EncounterSnapshot } from '../combat/combatManager';
 import type { HexCoordinates } from '@/common/types/hex.types';
 import type { HexBiome } from '../world/types';
+import { BIOMES, BIOME_IDS } from '../world/biomes';
+import { createEnemyPoolForBiome } from '../combat/biomeEncounter.util';
 
 export type WorldHexSnapshot = {
   id: string;
@@ -102,11 +101,16 @@ export class EngineLoop {
     this.emitWorld();
     this.emitLog(`Hex explored (${hexId})`);
 
+    const biome =
+      this.worldManager.getHexBiome(hexId) ??
+      (BIOME_IDS[0] as unknown as HexBiome);
+    const fightsToClear = BIOMES[biome]?.clearTreshold ?? FIGHTS_TO_CLEAR_HEX;
+
     this.combatManager.createEncounter({
       hexId,
       playerPokemon: DEFAULT_PLAYER_POKEMON,
-      enemyPool: DEFAULT_ENEMY_POKEMON_POOL,
-      fightsToClear: FIGHTS_TO_CLEAR_HEX,
+      enemyPool: createEnemyPoolForBiome(biome),
+      fightsToClear,
     });
     this.emitEncounter();
     this.emitLog(`Encounter created (${hexId})`);

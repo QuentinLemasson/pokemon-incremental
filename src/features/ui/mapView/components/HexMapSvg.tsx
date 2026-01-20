@@ -6,7 +6,7 @@ import { zoomAtPoint, type MapViewTransform } from '../utils/panZoom.util';
 
 export type HexMapTile = {
   id: string;
-  biome: keyof typeof BIOME_FILL;
+  biome: string;
   explored: boolean;
   cleared: boolean;
   coordinates: { q: number; r: number };
@@ -96,7 +96,7 @@ export const HexMapSvg = ({
           const fill = h.cleared
             ? MAP_TILE_COLORS.clearedFill
             : h.explored
-              ? BIOME_FILL[h.biome]
+              ? (BIOME_FILL[h.biome] ?? MAP_TILE_COLORS.unexploredFill)
               : MAP_TILE_COLORS.unexploredFill;
 
           const stroke = h.explored

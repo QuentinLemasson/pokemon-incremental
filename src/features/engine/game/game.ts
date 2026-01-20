@@ -14,7 +14,5 @@ export class Game {
 
     hex.explored = true;
     console.log('hex explored', hex.id);
-    hex.startCombat();
-    console.log('hex cleared', hex.id);
   }
 }
