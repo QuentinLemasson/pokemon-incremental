@@ -6,26 +6,17 @@ import { BIOMES } from '@/features/engine/world/biomes';
  * Centralizes all biome-driven visuals so `HexMapSvg` remains purely rendering logic.
  */
 export const BIOME_FILL: Record<string, string> = Object.fromEntries(
-  Object.values(BIOMES).map(biome => [
-    biome.id,
-    withAlpha(biome.color, alphaForBiomeType(biome.type)),
-  ])
+  Object.values(BIOMES).map(biome => [biome.id, biome.color])
 );
 
 export const MAP_TILE_COLORS = {
-  unexploredFill: 'rgba(15,23,42,0.55)',
-  exploredStroke: 'rgba(148,163,184,0.45)',
-  unexploredStroke: 'rgba(71,85,105,0.45)',
-  clearedStroke: 'rgba(56,189,248,0.65)',
+  unexploredFill: '#1e293b', // rgb(15,23,42)
+  exploredStroke: '#94a3b8', // rgb(148,163,184)
+  unexploredStroke: '#475569', // rgb(71,85,105)
+  clearedStroke: '#38bdf8', // rgb(56,189,248)
 } as const;
 
-function alphaForBiomeType(type: string): number {
-  if (type === 'FOREST') return 0.28;
-  if (type === 'PLAINS') return 0.2;
-  return 0.22;
-}
-
-function withAlpha(hex: string, alpha: number): string {
+export function withAlpha(hex: string, alpha: number): string {
   // supports "#RRGGBB" only (good enough for P1 config)
   const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
   if (!m) return hex;

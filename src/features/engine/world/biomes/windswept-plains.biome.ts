@@ -40,7 +40,7 @@ export const WINDSTREW_PLAINS_BIOME: BiomeConfig = {
     min: 2,
     max: 5,
   },
-  levelRarityAddition: {
+  rarityLevelBonus: {
     COMMON: 0,
     UNCOMMON: 1,
     RARE: 3,

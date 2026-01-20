@@ -35,6 +35,7 @@ export const MapView = () => {
           onHover={onHexHovered}
           onClick={onHexClicked}
           onHoveredHexChange={setHoveredHexId}
+          showDistantHexes
         />
       </div>
     </Frame>

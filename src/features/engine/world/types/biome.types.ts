@@ -31,5 +31,5 @@ export type BiomeConfig = {
   clearTreshold: number;
   travelThreshold: number;
   levelRange: Range;
-  levelRarityAddition: LevelRarityAddition;
+  rarityLevelBonus: LevelRarityAddition;
 };

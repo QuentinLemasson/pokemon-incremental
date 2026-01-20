@@ -40,7 +40,7 @@ export const VERDANT_FOREST_BIOME: BiomeConfig = {
     min: 4,
     max: 7,
   },
-  levelRarityAddition: {
+  rarityLevelBonus: {
     COMMON: 0,
     UNCOMMON: 2,
     RARE: 4,

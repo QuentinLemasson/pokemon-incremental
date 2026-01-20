@@ -40,7 +40,7 @@ export const CANARO_MOUNTAINS_BIOME: BiomeConfig = {
     min: 6,
     max: 10,
   },
-  levelRarityAddition: {
+  rarityLevelBonus: {
     COMMON: 0,
     UNCOMMON: 2,
     RARE: 5,

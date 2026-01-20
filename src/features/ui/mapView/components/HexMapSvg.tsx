@@ -18,6 +18,7 @@ export type HexMapSvgProps = {
   onHover: (hexId: string | null) => void;
   onClick: (hexId: string) => void;
   onHoveredHexChange: (hexId: string | null) => void;
+  showDistantHexes?: boolean;
 };
 
 export const HexMapSvg = ({
@@ -26,10 +27,13 @@ export const HexMapSvg = ({
   onHover,
   onClick,
   onHoveredHexChange,
+  showDistantHexes = false,
 }: HexMapSvgProps) => {
   const [view, setView] = React.useState<MapViewTransform>(
     MAP_VIEW_CONFIG.initialView
   );
+  const [hoveredHexId, setHoveredHexId] = React.useState<string | null>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
   const dragRef = React.useRef<{
     dragging: boolean;
     lastX: number;
@@ -59,6 +63,7 @@ export const HexMapSvg = ({
     dragRef.current.dragging = true;
     dragRef.current.lastX = e.clientX;
     dragRef.current.lastY = e.clientY;
+    setIsDragging(true);
   };
 
   const onMouseMove: React.MouseEventHandler<SVGSVGElement> = e => {
@@ -72,62 +77,125 @@ export const HexMapSvg = ({
 
   const onMouseUp: React.MouseEventHandler<SVGSVGElement> = () => {
     dragRef.current.dragging = false;
+    setIsDragging(false);
+  };
+
+  const hoveredHex = hoveredHexId
+    ? tiles.find(t => t.id === hoveredHexId)
+    : undefined;
+  const activeHex = activeHexId ? tiles.find(t => t.id === activeHexId) : null;
+  const normalHexes = tiles;
+
+  const renderHexVisual = (
+    h: HexMapTile,
+    params?: {
+      isActive?: boolean;
+      disableHover?: boolean;
+      withHitArea?: boolean;
+    }
+  ) => {
+    const { x, y } = axialToPixelFlat(h.coordinates);
+    const points = flatTopHexPoints(x, y);
+
+    const isActive = Boolean(params?.isActive);
+    const isHovered = !params?.disableHover && hoveredHexId === h.id;
+    const withHitArea = params?.withHitArea ?? true;
+
+    const isUnexplored = !h.explored && !h.cleared;
+
+    const baseFill =
+      h.explored || h.cleared || showDistantHexes
+        ? (BIOME_FILL[h.biome] ?? MAP_TILE_COLORS.unexploredFill)
+        : MAP_TILE_COLORS.unexploredFill;
+
+    const showUnexploredOverlay = showDistantHexes && isUnexplored;
+    const unexploredOverlayOpacity = 0.3;
+
+    const stroke = h.cleared
+      ? MAP_TILE_COLORS.clearedStroke
+      : h.explored
+        ? MAP_TILE_COLORS.exploredStroke
+        : MAP_TILE_COLORS.unexploredStroke;
+
+    const strokeWidth = h.cleared ? 3 : 2;
+    const strokeDasharray = h.cleared ? '6 4' : undefined;
+
+    return (
+      <g
+        key={h.id}
+        id={`hex-container-${h.id}`}
+        data-hex-id={h.id}
+        className={`hex-container ${isHovered ? 'hex-container--hovered' : ''}`}
+      >
+        {/* Visuals must NOT capture pointer events (hit-layer owns hover/click). */}
+        <g pointerEvents="none">
+          <polygon
+            className={`hex-tile ${isActive ? 'hex-active' : ''} ${isHovered ? 'hex-hover' : ''}`}
+            points={points}
+            fill={baseFill}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            strokeDasharray={strokeDasharray}
+          />
+          {showUnexploredOverlay ? (
+            <polygon
+              className="hex-tile hex-overlay"
+              points={points}
+              fill={MAP_TILE_COLORS.unexploredFill}
+              fillOpacity={unexploredOverlayOpacity}
+            />
+          ) : null}
+        </g>
+
+        {/* Hit area (owns hover/click). */}
+        {withHitArea ? (
+          <polygon
+            points={points}
+            fill="transparent"
+            stroke="transparent"
+            strokeWidth={8}
+            pointerEvents="all"
+            onMouseEnter={() => {
+              if (dragRef.current.dragging) return;
+              setHoveredHexId(h.id);
+              onHoveredHexChange(h.id);
+              onHover(h.id);
+            }}
+            onMouseLeave={() => {
+              if (dragRef.current.dragging) return;
+              setHoveredHexId(null);
+              onHoveredHexChange(null);
+              onHover(null);
+            }}
+            onClick={() => onClick(h.id)}
+          />
+        ) : null}
+      </g>
+    );
   };
 
   return (
     <svg
       ref={svgRef}
-      className="block w-full h-full"
+      className="block w-full h-full select-none"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
-      style={{ cursor: dragRef.current.dragging ? 'grabbing' : 'grab' }}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       <g
         transform={`translate(${view.panX} ${view.panY}) scale(${view.scale})`}
       >
-        {tiles.map(h => {
-          const { x, y } = axialToPixelFlat(h.coordinates);
-          const points = flatTopHexPoints(x, y);
-
-          const isActive = activeHexId === h.id;
-          const fill =
-            h.explored || h.cleared
-              ? (BIOME_FILL[h.biome] ?? MAP_TILE_COLORS.unexploredFill)
-              : MAP_TILE_COLORS.unexploredFill;
-
-          const stroke = h.cleared
-            ? MAP_TILE_COLORS.clearedStroke
-            : h.explored
-              ? MAP_TILE_COLORS.exploredStroke
-              : MAP_TILE_COLORS.unexploredStroke;
-
-          const strokeWidth = h.cleared ? 3 : 2;
-          const strokeDasharray = h.cleared ? '6 4' : undefined;
-
-          return (
-            <polygon
-              key={h.id}
-              className={`hex-tile ${isActive ? 'hex-active' : ''}`}
-              points={points}
-              fill={fill}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-              strokeDasharray={strokeDasharray}
-              onMouseEnter={() => {
-                onHoveredHexChange(h.id);
-                onHover(h.id);
-              }}
-              onMouseLeave={() => {
-                onHoveredHexChange(null);
-                onHover(null);
-              }}
-              onClick={() => onClick(h.id)}
-            />
-          );
-        })}
+        {/* Render order controls z-index: normal -> active -> hovered */}
+        {normalHexes.map(h => renderHexVisual(h, { disableHover: true }))}
+        {activeHex
+          ? renderHexVisual(activeHex, { isActive: true, withHitArea: false })
+          : null}
+        {hoveredHex && hoveredHex.id !== activeHexId
+          ? renderHexVisual(hoveredHex, { withHitArea: false })
+          : null}
       </g>
     </svg>
   );
