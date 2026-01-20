@@ -93,15 +93,19 @@ export const HexMapSvg = ({
           const points = flatTopHexPoints(x, y);
 
           const isActive = activeHexId === h.id;
-          const fill = h.cleared
-            ? MAP_TILE_COLORS.clearedFill
-            : h.explored
+          const fill =
+            h.explored || h.cleared
               ? (BIOME_FILL[h.biome] ?? MAP_TILE_COLORS.unexploredFill)
               : MAP_TILE_COLORS.unexploredFill;
 
-          const stroke = h.explored
-            ? MAP_TILE_COLORS.exploredStroke
-            : MAP_TILE_COLORS.unexploredStroke;
+          const stroke = h.cleared
+            ? MAP_TILE_COLORS.clearedStroke
+            : h.explored
+              ? MAP_TILE_COLORS.exploredStroke
+              : MAP_TILE_COLORS.unexploredStroke;
+
+          const strokeWidth = h.cleared ? 3 : 2;
+          const strokeDasharray = h.cleared ? '6 4' : undefined;
 
           return (
             <polygon
@@ -110,7 +114,8 @@ export const HexMapSvg = ({
               points={points}
               fill={fill}
               stroke={stroke}
-              strokeWidth={2}
+              strokeWidth={strokeWidth}
+              strokeDasharray={strokeDasharray}
               onMouseEnter={() => {
                 onHoveredHexChange(h.id);
                 onHover(h.id);

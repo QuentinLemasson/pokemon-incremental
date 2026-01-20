@@ -24,6 +24,8 @@ export const CombatView = () => {
       <CombatHeader
         hexId={encounter.hexId}
         statusText={encounter.running ? 'Running' : ended ? 'Ended' : 'Ready'}
+        fightIndex={encounter.fightIndex}
+        fightTarget={encounter.fightTarget}
       />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

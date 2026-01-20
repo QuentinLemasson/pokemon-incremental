@@ -63,6 +63,16 @@ export class WorldManager {
     return hex?.biome ?? null;
   }
 
+  getHexState(hexId: string): {
+    biome: HexBiome;
+    explored: boolean;
+    cleared: boolean;
+  } | null {
+    const hex = this.hexById.get(hexId);
+    if (!hex) return null;
+    return { biome: hex.biome, explored: hex.explored, cleared: hex.cleared };
+  }
+
   /**
    * Marks a hex explored if allowed.
    * Returns true if a state change occurred.

@@ -14,9 +14,9 @@ export const BIOME_FILL: Record<string, string> = Object.fromEntries(
 
 export const MAP_TILE_COLORS = {
   unexploredFill: 'rgba(15,23,42,0.55)',
-  clearedFill: 'rgba(100,116,139,0.35)',
   exploredStroke: 'rgba(148,163,184,0.45)',
   unexploredStroke: 'rgba(71,85,105,0.45)',
+  clearedStroke: 'rgba(56,189,248,0.65)',
 } as const;
 
 function alphaForBiomeType(type: string): number {

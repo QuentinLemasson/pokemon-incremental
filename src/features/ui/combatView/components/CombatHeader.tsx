@@ -1,13 +1,25 @@
 export type CombatHeaderProps = {
   hexId: string;
   statusText?: string;
+  fightIndex?: number;
+  fightTarget?: number;
 };
 
 /**
  * Title/header for the combat panel.
  * Keeps `CombatView` focused on orchestration.
  */
-export const CombatHeader = ({ hexId, statusText }: CombatHeaderProps) => {
+export const CombatHeader = ({
+  hexId,
+  statusText,
+  fightIndex,
+  fightTarget,
+}: CombatHeaderProps) => {
+  const progress =
+    typeof fightIndex === 'number' && typeof fightTarget === 'number'
+      ? `${fightIndex}/${Number.isFinite(fightTarget) ? fightTarget : '∞'}`
+      : null;
+
   return (
     <div className="flex items-baseline justify-between">
       <div className="space-y-1">
@@ -16,6 +28,11 @@ export const CombatHeader = ({ hexId, statusText }: CombatHeaderProps) => {
           <strong className="tracking-wide">Hex</strong>{' '}
           <span className="font-mono text-slate-200">{hexId}</span>
         </div>
+        {progress ? (
+          <div className="text-xs text-slate-300">
+            Fights: <span className="font-mono text-slate-200">{progress}</span>
+          </div>
+        ) : null}
       </div>
       {statusText ? (
         <div className="text-xs text-slate-300">{statusText}</div>

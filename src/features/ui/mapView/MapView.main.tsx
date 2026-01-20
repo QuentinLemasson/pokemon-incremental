@@ -14,13 +14,20 @@ export const MapView = () => {
   const [hoveredHexId, setHoveredHexId] = React.useState<string | null>(null);
 
   const hoveredHex = hoveredHexId ? world.byId[hoveredHexId] : undefined;
+  const activeHex = activeHexId ? world.byId[activeHexId] : undefined;
+  const overlayHex = hoveredHex ?? activeHex;
 
   return (
     <Frame id="map-view-main" className="p-0">
       <style>{MAP_VIEW_CONFIG.tileCss}</style>
 
       <div className="relative w-full h-full min-h-0">
-        <MapHoverOverlay coordinates={hoveredHex?.coordinates} />
+        <MapHoverOverlay
+          coordinates={overlayHex?.coordinates}
+          biomeId={overlayHex?.biome}
+          explored={overlayHex?.explored}
+          cleared={overlayHex?.cleared}
+        />
 
         <HexMapSvg
           tiles={world.ids.map(id => world.byId[id]).filter(Boolean)}

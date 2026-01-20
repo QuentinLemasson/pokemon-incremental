@@ -91,20 +91,26 @@ export class EngineLoop {
 
   /**
    * Intent: user clicked a hex.
-   * WorldManager decides if it can be explored.
-   * CombatManager creates an encounter for the hex.
+   * - Can be clicked again even if already explored/cleared (re-select).
+   * - Starts a new encounter for the hex.
    */
   onHexClicked(hexId: string) {
-    const explored = this.worldManager.explore(hexId);
-    if (!explored) return;
+    const state = this.worldManager.getHexState(hexId);
+    if (!state) return;
 
-    this.emitWorld();
-    this.emitLog(`Hex explored (${hexId})`);
+    // First time exploration
+    if (!state.explored) {
+      this.worldManager.explore(hexId);
+      this.emitWorld();
+      this.emitLog(`Hex explored (${hexId})`);
+    }
 
-    const biome =
-      this.worldManager.getHexBiome(hexId) ??
-      (BIOME_IDS[0] as unknown as HexBiome);
-    const fightsToClear = BIOMES[biome]?.clearTreshold ?? FIGHTS_TO_CLEAR_HEX;
+    const biome = state.biome ?? (BIOME_IDS[0] as unknown as HexBiome);
+
+    // Cleared hexes: infinite fights (never re-clear, no end condition).
+    const fightsToClear = state.cleared
+      ? Number.POSITIVE_INFINITY
+      : (BIOMES[biome]?.clearTreshold ?? FIGHTS_TO_CLEAR_HEX);
 
     this.combatManager.createEncounter({
       hexId,
