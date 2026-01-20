@@ -21,21 +21,29 @@ export const CombatHeader = ({
       : null;
 
   return (
-    <div className="flex items-baseline justify-between">
-      <div className="space-y-1">
-        <div className="text-xs text-slate-300 tracking-wide">Encounter</div>
-        <div className="text-sm">
-          <strong className="tracking-wide">Hex</strong>{' '}
-          <span className="font-mono text-slate-200">{hexId}</span>
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="text-[10px] text-slate-300 tracking-wide">
+          Encounter
         </div>
-        {progress ? (
-          <div className="text-xs text-slate-300">
-            Fights: <span className="font-mono text-slate-200">{progress}</span>
+        <div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+          <div className="min-w-0">
+            <strong className="tracking-wide">Hex</strong>{' '}
+            <span className="font-mono text-slate-200">{hexId}</span>
           </div>
-        ) : null}
+          {progress ? (
+            <div className="text-xs text-slate-300">
+              Fights:{' '}
+              <span className="font-mono text-slate-200">{progress}</span>
+            </div>
+          ) : null}
+        </div>
       </div>
+
       {statusText ? (
-        <div className="text-xs text-slate-300">{statusText}</div>
+        <div className="shrink-0 rounded-md border border-slate-700/70 bg-black/20 px-2 py-1 text-[11px] text-slate-200">
+          {statusText}
+        </div>
       ) : null}
     </div>
   );

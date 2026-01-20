@@ -20,7 +20,7 @@ export const CombatView = () => {
       : undefined;
 
   return (
-    <Frame id="combat-view-main" className="space-y-4">
+    <Frame id="combat-view-main" className="space-y-3">
       <CombatHeader
         hexId={encounter.hexId}
         statusText={encounter.running ? 'Running' : ended ? 'Ended' : 'Ready'}
@@ -28,7 +28,7 @@ export const CombatView = () => {
         fightTarget={encounter.fightTarget}
       />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
         <CombatantCard
           sideLabel="Player"
           combatant={encounter.player}

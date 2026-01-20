@@ -9,6 +9,11 @@ export type StatBarProps = {
    * (e.g. "+1.23/tick").
    */
   rightLabel?: string;
+  /**
+   * Whether to render the bottom "current / max" numbers row.
+   * Defaults to true for backwards compatibility.
+   */
+  showNumbers?: boolean;
   /** Tailwind classes for the fill (gradient/color). */
   fillClassName: string;
 };
@@ -25,6 +30,7 @@ export const StatBar = ({
   current,
   max,
   rightLabel,
+  showNumbers = true,
   fillClassName,
 }: StatBarProps) => {
   const safeMax = max <= 0 ? 1 : max;
@@ -41,7 +47,7 @@ export const StatBar = ({
         ) : null}
       </div>
 
-      <div className="relative h-3 rounded-md border border-slate-700/80 bg-black/40 shadow-inner">
+      <div className="relative h-2.5 rounded-md border border-slate-700/80 bg-black/40 shadow-inner">
         <div
           className={cn(
             'h-full rounded-[5px] transition-[width] duration-150',
@@ -53,10 +59,12 @@ export const StatBar = ({
         <div className="pointer-events-none absolute inset-0 rounded-md ring-1 ring-white/5" />
       </div>
 
-      <div className="flex justify-between text-[11px] text-slate-300 font-mono">
-        <span>{current.toFixed(0)}</span>
-        <span>{max.toFixed(0)}</span>
-      </div>
+      {showNumbers ? (
+        <div className="flex justify-between text-[11px] text-slate-300 font-mono">
+          <span>{current.toFixed(0)}</span>
+          <span>{max.toFixed(0)}</span>
+        </div>
+      ) : null}
     </div>
   );
 };
