@@ -4,7 +4,7 @@ export const VERDANT_FOREST_BIOME: BiomeConfig = {
   id: 'verdant-forest',
   name: 'Verdant Forest',
   type: 'FOREST',
-  color: '#8B5E3C',
+  color: '#3FAC30',
   encounterPool: {
     COMMON: [
       {

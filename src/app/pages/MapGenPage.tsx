@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { HelpCircle, Save, Download, Upload, Trash2 } from 'lucide-react';
 import {
@@ -175,16 +174,7 @@ export const MapGenPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen p-8 bg-slate-900 text-white">
-      <div className="mb-6">
-        <Link
-          to="/game"
-          className="text-sm text-slate-400 hover:text-slate-300"
-        >
-          ← Back to game
-        </Link>
-      </div>
-
+    <div className="flex flex-col   ">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Map Generator</h1>
         <div className="flex gap-2">

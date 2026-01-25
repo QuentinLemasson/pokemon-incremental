@@ -6,3 +6,4 @@ export * from './card';
 export * from './separator';
 export * from './input';
 export * from './label';
+export * from './dropdown-menu';

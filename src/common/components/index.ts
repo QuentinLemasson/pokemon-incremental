@@ -1,2 +1,2 @@
 // Generic components (non-shadcn)
-// Add your custom generic components here
+export { Frame } from './Frame';

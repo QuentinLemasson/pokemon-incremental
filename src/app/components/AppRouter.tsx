@@ -17,18 +17,30 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+        handle: {
+          title: 'Home',
+        },
       },
       {
         path: 'login',
         element: <LoginPage />,
+        handle: {
+          title: 'Login',
+        },
       },
       {
         path: 'register',
         element: <RegisterPage />,
+        handle: {
+          title: 'Register',
+        },
       },
       {
         path: 'game',
         element: <GamePage />,
+        handle: {
+          title: 'Game',
+        },
       },
       {
         path: 'edition',
@@ -36,12 +48,18 @@ const router = createBrowserRouter([
           {
             path: 'map-gen',
             element: <MapGenPage />,
+            handle: {
+              title: 'Map Generator',
+            },
           },
         ],
       },
       {
         path: '*',
         element: <NotFoundPage />,
+        handle: {
+          title: '404 - Not Found',
+        },
       },
     ],
   },

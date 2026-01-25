@@ -14,35 +14,28 @@ export type MainLayoutProps = {
  * - Panels can manage their own internal overflow if needed
  */
 export const MainLayout = ({
-  header,
   left,
   centerTop,
   centerMain,
   right,
 }: MainLayoutProps) => {
   return (
-    <main className="h-screen overflow-hidden p-6">
-      <div className="grid grid-cols-[280px_1fr_280px] grid-rows-[auto_auto_1fr] gap-4 h-full min-h-0">
-        <div className="col-span-3 col-start-1 row-start-1 min-h-0 min-w-0">
-          {header}
-        </div>
-
-        <div className="row-span-2 col-start-1 row-start-2 min-h-0 min-w-0">
-          {left}
-        </div>
-
-        <div className="col-span-1 col-start-2 row-start-2 min-h-0 min-w-0">
-          {centerTop}
-        </div>
-
-        <div className="col-span-1 row-span-3 col-start-2 row-start-3 min-h-0 min-w-0">
-          {centerMain}
-        </div>
-
-        <div className="row-span-2 col-start-3 row-start-2 min-h-0 min-w-0">
-          {right}
-        </div>
+    <div className="grid grid-cols-[280px_1fr_280px] grid-rows-[auto_1fr] gap-4 h-full min-h-0">
+      <div className="row-span-2 col-start-1 row-start-1 min-h-0 min-w-0">
+        {left}
       </div>
-    </main>
+
+      <div className="col-span-1 col-start-2 row-start-1 min-h-0 min-w-0">
+        {centerTop}
+      </div>
+
+      <div className="col-span-1 row-span-3 col-start-2 row-start-2 min-h-0 min-w-0">
+        {centerMain}
+      </div>
+
+      <div className="row-span-2 col-start-3 row-start-1 min-h-0 min-w-0">
+        {right}
+      </div>
+    </div>
   );
 };
