@@ -7,7 +7,13 @@ import {
   computeVoronoiBiome,
   computeVoronoiShapeScore,
   createCenteredVoronoiSites,
+  type VoronoiContext,
 } from './generation/centeredVoronoiNoise.generator';
+
+export type GenerationResult = {
+  hexes: Hex[];
+  voronoiContext?: VoronoiContext;
+};
 
 /**
  * Default world generation configuration (P1).
@@ -32,15 +38,16 @@ export const DEFAULT_WORLD_GENERATION: WorldGenerationConfig = {
 };
 
 /**
- * Generates the world map and assigns biomes procedurally.
+ * Generates the world map and returns both hexes and generation context.
+ * Useful for debugging/visualization overlays.
  *
  * World shape:
  * - Build a candidate axial hexagon within `generator.centeredVoronoiNoise.maxRadius`
- * - Grow a connected “blob” from the center using a Voronoi+noise score until reaching target tile count
+ * - Grow a connected "blob" from the center using a Voronoi+noise score until reaching target tile count
  */
-export function generateMaps(
+export function generateMapsWithContext(
   config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
-): Hex[] {
+): GenerationResult {
   const biomes: HexBiome[] = [...BIOME_IDS];
 
   // Target coverage size (stable across seeds).
@@ -111,7 +118,19 @@ export function generateMaps(
     hexes.push(new Hex(id, coord, biome));
   }
 
-  return hexes;
+  return { hexes, voronoiContext: voronoi };
+}
+
+/**
+ * Generates the world map and assigns biomes procedurally.
+ *
+ * This is a convenience wrapper around `generateMapsWithContext` that returns only the hexes.
+ * Use `generateMapsWithContext` if you need the Voronoi context for visualization/debugging.
+ */
+export function generateMaps(
+  config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
+): Hex[] {
+  return generateMapsWithContext(config).hexes;
 }
 
 function tilesForRadius(radius: number): number {

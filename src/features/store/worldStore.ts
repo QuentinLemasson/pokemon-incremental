@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { engineLoop, type WorldSnapshot } from '../engine/runtime/engineLoop';
+import type { VoronoiContext } from '../engine/world/generation/centeredVoronoiNoise.generator';
 
 declare global {
   var __POKE_RPG_WORLD_STORE_BOUND__: boolean | undefined;
@@ -7,6 +8,7 @@ declare global {
 
 export type WorldState = {
   world: WorldSnapshot;
+  voronoiContext: VoronoiContext | undefined;
   onHexClicked: (hexId: string) => void;
   onHexHovered: (hexId: string | null) => void;
 };
@@ -28,6 +30,7 @@ export const useWorldStore = create<WorldState>(() => {
 
   return {
     world: engineLoop.getWorldSnapshot(),
+    voronoiContext: engineLoop.getVoronoiContext(),
     onHexClicked: (hexId: string) => engineLoop.onHexClicked(hexId),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onHexHovered: (_hexId: string | null) => {

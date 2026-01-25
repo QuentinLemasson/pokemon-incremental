@@ -7,6 +7,7 @@ import type { HexCoordinates } from '@/common/types/hex.types';
 import type { HexBiome } from '../world/types';
 import { BIOMES, BIOME_IDS } from '../world/biomes';
 import { createEnemyPoolForBiome } from '../combat/biomeEncounter.util';
+import type { VoronoiContext } from '../world/generation';
 
 export type WorldHexSnapshot = {
   id: string;
@@ -87,6 +88,10 @@ export class EngineLoop {
 
   getEncounterSnapshot(): EncounterSnapshot | null {
     return this.combatManager.getSnapshot();
+  }
+
+  getVoronoiContext(): VoronoiContext | undefined {
+    return this.worldManager.getVoronoiContext();
   }
 
   /**

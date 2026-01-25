@@ -1,8 +1,9 @@
-import { DEFAULT_WORLD_GENERATION, generateMaps } from './generator';
+import { DEFAULT_WORLD_GENERATION, generateMapsWithContext } from './generator';
 import { createSeedString } from './generation/seed';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
 import type { HexBiome } from './types';
+import type { VoronoiContext } from './generation/centeredVoronoiNoise.generator';
 
 /**
  * WorldManager
@@ -19,6 +20,7 @@ export class WorldManager {
    */
   private readonly hexById: Map<string, Hex>;
   private readonly hexIds: string[];
+  private readonly voronoiContext: VoronoiContext | undefined;
 
   constructor() {
     // Seed is generated once per browser session (HMR-safe).
@@ -26,7 +28,7 @@ export class WorldManager {
       globalThis.__POKE_RPG_WORLD_SEED__ ??
       (globalThis.__POKE_RPG_WORLD_SEED__ = createSeedString());
 
-    const hexes = generateMaps({
+    const result = generateMapsWithContext({
       ...DEFAULT_WORLD_GENERATION,
       seed,
       generator: {
@@ -36,8 +38,9 @@ export class WorldManager {
         },
       },
     });
-    this.hexById = new Map(hexes.map(h => [h.id, h]));
-    this.hexIds = hexes.map(h => h.id);
+    this.hexById = new Map(result.hexes.map(h => [h.id, h]));
+    this.hexIds = result.hexes.map(h => h.id);
+    this.voronoiContext = result.voronoiContext;
   }
 
   getSnapshot(): WorldSnapshot {
@@ -92,6 +95,11 @@ export class WorldManager {
     if (hex.cleared) return false;
     hex.cleared = true;
     return true;
+  }
+
+  /** Returns the Voronoi context used for generation (if available). */
+  getVoronoiContext(): VoronoiContext | undefined {
+    return this.voronoiContext;
   }
 }
 

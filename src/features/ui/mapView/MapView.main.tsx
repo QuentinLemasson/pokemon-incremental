@@ -4,6 +4,7 @@ import { MapViewBase } from './components/MapViewBase';
 
 export const MapView = () => {
   const world = useWorldStore(s => s.world);
+  const voronoiContext = useWorldStore(s => s.voronoiContext);
   const onHexClicked = useWorldStore(s => s.onHexClicked);
   const onHexHovered = useWorldStore(s => s.onHexHovered);
   const activeHexId = useCombatStore(s => s.encounter?.hexId ?? null);
@@ -18,6 +19,7 @@ export const MapView = () => {
       onClick={onHexClicked}
       showDistantHexes
       frameId="map-view-main"
+      voronoiContext={voronoiContext}
     />
   );
 };

@@ -3,6 +3,8 @@ import { MAP_VIEW_CONFIG } from '../mapView.config';
 import { BIOME_FILL, MAP_TILE_COLORS } from '../mapBiome.config';
 import { axialToPixelFlat, flatTopHexPoints } from '../utils/hexSvg.util';
 import { zoomAtPoint, type MapViewTransform } from '../utils/panZoom.util';
+import { VoronoiOverlay } from './VoronoiOverlay';
+import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
 
 export type HexMapTile = {
   id: string;
@@ -19,6 +21,8 @@ export type HexMapSvgProps = {
   onClick: (hexId: string) => void;
   onHoveredHexChange: (hexId: string | null) => void;
   showDistantHexes?: boolean;
+  showAlgorithmOverlay?: boolean;
+  voronoiContext?: VoronoiContext;
 };
 
 export const HexMapSvg = ({
@@ -28,6 +32,8 @@ export const HexMapSvg = ({
   onClick,
   onHoveredHexChange,
   showDistantHexes = false,
+  showAlgorithmOverlay = false,
+  voronoiContext,
 }: HexMapSvgProps) => {
   const [view, setView] = React.useState<MapViewTransform>(
     MAP_VIEW_CONFIG.initialView
@@ -188,7 +194,7 @@ export const HexMapSvg = ({
       <g
         transform={`translate(${view.panX} ${view.panY}) scale(${view.scale})`}
       >
-        {/* Render order controls z-index: normal -> active -> hovered */}
+        {/* Render order controls z-index: normal -> active -> hovered -> overlay */}
         {normalHexes.map(h => renderHexVisual(h, { disableHover: true }))}
         {activeHex
           ? renderHexVisual(activeHex, { isActive: true, withHitArea: false })
@@ -196,6 +202,10 @@ export const HexMapSvg = ({
         {hoveredHex && hoveredHex.id !== activeHexId
           ? renderHexVisual(hoveredHex, { withHitArea: false })
           : null}
+        {/* Algorithm overlay (Voronoi sites and borders) */}
+        {showAlgorithmOverlay && voronoiContext ? (
+          <VoronoiOverlay tiles={tiles} voronoiContext={voronoiContext} />
+        ) : null}
       </g>
     </svg>
   );

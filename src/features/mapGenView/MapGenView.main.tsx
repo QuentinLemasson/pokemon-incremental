@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { generateMaps } from '@/features/engine/world/generator';
+import { generateMapsWithContext } from '@/features/engine/world/generator';
 import type { HexMapTile } from '@/features/ui/mapView/components/HexMapSvg';
 import { useMapGenConfig } from './hooks/useMapGenConfig.hook';
 import { useMapGenPresets } from './hooks/useMapGenPresets.hook';
@@ -24,27 +24,27 @@ export const MapGenView = () => {
 
   const { presets, savePreset, deletePreset } = useMapGenPresets();
 
-  const [generatedHexes, setGeneratedHexes] = useState(() =>
-    generateMaps(config)
+  const [generationResult, setGenerationResult] = useState(() =>
+    generateMapsWithContext(config)
   );
 
   const previewTiles: HexMapTile[] = useMemo(
     () =>
-      generatedHexes.map(hex => ({
+      generationResult.hexes.map(hex => ({
         id: hex.id,
         biome: hex.biome,
         explored: true,
         cleared: false,
         coordinates: hex.coordinates,
       })),
-    [generatedHexes]
+    [generationResult.hexes]
   );
 
-  const tileCount = generatedHexes.length;
+  const tileCount = generationResult.hexes.length;
 
   const handleGenerate = () => {
-    const newHexes = generateMaps(config);
-    setGeneratedHexes(newHexes);
+    const result = generateMapsWithContext(config);
+    setGenerationResult(result);
   };
 
   const handleConfigImported = (importedConfig: typeof config) => {
@@ -86,7 +86,11 @@ export const MapGenView = () => {
         </div>
 
         {/* Preview Panel */}
-        <MapGenPreviewPanel tiles={previewTiles} tileCount={tileCount} />
+        <MapGenPreviewPanel
+          tiles={previewTiles}
+          tileCount={tileCount}
+          voronoiContext={generationResult.voronoiContext}
+        />
       </div>
     </div>
   );
