@@ -51,3 +51,10 @@ Containes shared interfaces, utilities, hooks and atomic components.
 - Logic belongs to the engine, rendering belong to ui - they shouldn't be mixed and allowed to function without one another
 - Focus on project scalabity and maintainability
 - For clarity and lisibility, each class should have its own file
+
+# Documentation
+- ensure proper jsdoc for every component, hook, method, and type field at all time
+- if you spot a lack of jsdoc, add it
+
+# Style
+- all basic color should inherit from the theme, defined in index.css - expect for very specific cases when colors are data-driven

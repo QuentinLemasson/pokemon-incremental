@@ -1,0 +1,103 @@
+---
+description: New file creation & Directory Structure & SOLID principle
+alwaysApply: false
+---
+### `common/` - Shared Utilities & Components
+
+**Purpose:** Reusable code that is **domain-agnostic** and used across multiple features.
+
+**Contains:**
+- Generic UI components (buttons, cards, tooltips)
+- Utility functions (string manipulation, date formatting, JSON I/O)
+- Shared types that multiple features use
+- Common hooks (debounce, local storage)
+
+**Rule:** If it can be used by **any feature** and has **no domain knowledge**, it belongs in `common/`.
+
+**Examples:**
+- `FieldWithTooltip.tsx` - Generic field wrapper (reusable anywhere)
+- `json-export.util.ts` - Generic JSON file export (not map-gen specific)
+- `string.util.ts` - String manipulation utilities
+
+**Not `common/`:**
+- Map generation specific logic
+- Combat-specific components
+- Pokemon-specific utilities
+
+---
+
+### `features/` - Feature Modules
+
+**Purpose:** Self-contained features with their own UI, logic, and state.
+
+**Structure:**
+```
+features/
+  ui/
+    featureName/
+      components/     # Feature-specific UI components
+      hooks/          # Feature-specific hooks
+      utils/          # Feature-specific utilities
+      FeatureName.main.tsx  # Main orchestrator
+  engine/            # Business logic, game rules
+  store/            # State management
+```
+
+**Rule:** If it's **specific to one feature** and not reusable elsewhere, it belongs in `features/`.
+
+**Examples:**
+- `features/ui/mapGenView/` - All map generation UI
+- `features/ui/combatView/` - All combat UI
+- `features/engine/world/` - World generation logic
+- `features/store/worldStore.ts` - World state management
+
+**Key Principle:** Features should be **independent** and **composable**. A page in `app/` imports and composes features, but features don't know about pages.
+
+---
+
+## Decision Tree
+
+```
+Is it about page structure, routing, or app-level layout?
+├─ YES → app/
+└─ NO → Continue
+
+Is it domain-agnostic and reusable across multiple features?
+├─ YES → common/
+└─ NO → features/
+
+Within features/:
+├─ UI components, hooks, utils → features/ui/featureName/
+├─ Business logic, game rules → features/engine/
+└─ State management → features/store/
+```
+
+---
+
+## Quick Reference
+
+| Code Type | Namespace | Example |
+|----------|-----------|---------|
+| Page wrapper | `app/pages/` | `MapGenPage.tsx` |
+| Layout, routing | `app/layout/`, `app/components/` | `MainLayout.tsx`, `AppRouter.tsx` |
+| Generic UI component | `common/components/` | `FieldWithTooltip.tsx` |
+| Generic utility | `common/utils/` | `json-export.util.ts` |
+| Feature UI | `features/ui/featureName/` | `mapGenView/components/` |
+| Feature hook | `features/ui/featureName/hooks/` | `useMapGenConfig.hook.ts` |
+| Feature utility | `features/ui/featureName/utils/` | `presetManager.ts` |
+| Business logic | `features/engine/` | `world/generator.ts` |
+| State management | `features/store/` | `worldStore.ts` |
+
+---
+
+## Best Practices
+
+1. **Start with features/** - Most code belongs in features. Only move to `common/` when you have 2+ features using it.
+
+2. **Keep pages thin** - Pages in `app/pages/` should be simple wrappers that compose features.
+
+3. **Avoid circular dependencies** - `common/` should never import from `features/`. `app/` can import from both.
+
+4. **Feature independence** - Features should not import from other features. Use `common/` for shared code.
+
+5. **When in doubt** - Put it in the feature namespace first. You can always extract to `common/` later when it's proven reusable.
