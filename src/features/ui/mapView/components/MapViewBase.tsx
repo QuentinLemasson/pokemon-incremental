@@ -3,7 +3,7 @@ import * as React from 'react';
 import { HexMapSvg, type HexMapTile } from './HexMapSvg';
 import { MapHoverOverlay } from './MapHoverOverlay';
 import { MAP_VIEW_CONFIG } from '../mapView.config';
-import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '@/features/engine/world/types';
 import { cn } from '@/common/utils/shadcn.util';
 import { AlgorithmOverlayToggle } from './AlgorithmOverlayToggle';
 

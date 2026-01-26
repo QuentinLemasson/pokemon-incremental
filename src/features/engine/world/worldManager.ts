@@ -2,8 +2,7 @@ import { DEFAULT_WORLD_GENERATION, generateMapsWithContext } from './generator';
 import { createSeedString } from './generation/seed';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
-import type { HexBiome } from './types';
-import type { VoronoiContext } from './generation/centeredVoronoiNoise.generator';
+import type { HexBiome, VoronoiContext } from './types';
 
 /**
  * WorldManager

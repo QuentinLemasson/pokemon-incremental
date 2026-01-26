@@ -46,55 +46,6 @@ export const WorldConfigTab = ({
             </Button>
           </div>
         </FieldWithTooltip>
-
-        <FieldWithTooltip field={FIELD_DESCRIPTIONS.radius}>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-slate-400">
-              <span>Value: {config.radius}</span>
-              <span>Tiles: {1 + 3 * config.radius * (config.radius + 1)}</span>
-            </div>
-            <input
-              type="range"
-              min="3"
-              max="12"
-              value={config.radius}
-              onChange={e =>
-                onUpdateConfig('radius', parseInt(e.target.value, 10))
-              }
-              className="w-full"
-            />
-          </div>
-        </FieldWithTooltip>
-
-        <FieldWithTooltip field={FIELD_DESCRIPTIONS.minTiles}>
-          <Input
-            type="number"
-            min="1"
-            value={config.minTiles ?? ''}
-            onChange={e =>
-              onUpdateConfig(
-                'minTiles',
-                e.target.value ? parseInt(e.target.value, 10) : undefined
-              )
-            }
-            placeholder="No limit"
-          />
-        </FieldWithTooltip>
-
-        <FieldWithTooltip field={FIELD_DESCRIPTIONS.maxTiles}>
-          <Input
-            type="number"
-            min="1"
-            value={config.maxTiles ?? ''}
-            onChange={e =>
-              onUpdateConfig(
-                'maxTiles',
-                e.target.value ? parseInt(e.target.value, 10) : undefined
-              )
-            }
-            placeholder="No limit"
-          />
-        </FieldWithTooltip>
       </CardContent>
     </Card>
   );

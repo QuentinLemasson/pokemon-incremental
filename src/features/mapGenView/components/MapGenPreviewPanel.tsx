@@ -1,6 +1,6 @@
 import type { HexMapTile } from '@/features/ui/mapView/components/HexMapSvg';
 import { MapPreview } from '@/features/ui/mapView/components/MapPreview';
-import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '@/features/engine/world/types';
 
 type MapGenPreviewPanelProps = {
   tiles: HexMapTile[];

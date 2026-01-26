@@ -1,4 +1,4 @@
-import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '@/features/engine/world/types';
 import type { HexMapTile } from './HexMapSvg';
 import { axialToPixelFlat } from '../utils/hexSvg.util';
 import { ALGORITHM_OVERLAY_CONFIG } from '../algorithmOverlay.config';

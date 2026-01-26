@@ -1,6 +1,6 @@
 import { MapViewBase } from './MapViewBase';
 import type { HexMapTile } from './HexMapSvg';
-import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '@/features/engine/world/types';
 import { cn } from '@/common/utils/shadcn.util';
 
 export type MapPreviewProps = {

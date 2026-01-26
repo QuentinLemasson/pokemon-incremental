@@ -4,18 +4,27 @@ export type WorldGeneratorType = 'centered_voronoi_noise_v1';
 
 export type CenteredVoronoiNoiseConfig = {
   /**
-   * Candidate grid boundary radius (in hex steps) used to build an organic world shape.
+   * Candidate grid boundary distance (in hex steps) used to build an organic world shape.
    * The final world is a connected subset ("blob") selected from this candidate area.
+   * This is the maximum possible distance from center for any hex in the world.
    */
-  maxRadius: number;
+  maxDistance: number;
+
+  /**
+   * Target coverage (as a fraction of maxDistance, between 0 and 1).
+   * Determines the desired world size via the formula: tiles = 1 + 3×R×(R+1)
+   * where R = coverage × maxDistance.
+   * The actual world size will be limited by `maxDistance` (the candidate pool boundary).
+   */
+  coverage: number;
 
   /** Number of sites (regions). */
   pointsCount: number;
   /**
-   * Max radius (in hex steps) where sites may spawn, relative to the world center.
-   * Should be <= `maxRadius`.
+   * Max distance (in hex steps) where sites may spawn, relative to the world center.
+   * Should be <= `maxDistance`.
    */
-  sitesMaxRadius: number;
+  sitesMaxDistance: number;
   /**
    * Jitter strength (in hex-distance units) applied as hash-noise to boundaries.
    * 0 => pure Voronoi.
@@ -35,18 +44,6 @@ export type CenteredVoronoiNoiseConfig = {
 
 export type WorldGenerationConfig = {
   seed: SeedString;
-  /**
-   * World radius (hex distance from center to corners).
-   * Tile count is stable for a given radius: \(1 + 3R(R+1)\).
-   */
-  radius: number;
-  /**
-   * Optional hardcaps on tile count (used to clamp radius).
-   * This ensures “similar coverage” between seeds by keeping size constant
-   * (or at least within bounds).
-   */
-  minTiles?: number;
-  maxTiles?: number;
   generator: {
     type: WorldGeneratorType;
     centeredVoronoiNoise: CenteredVoronoiNoiseConfig;

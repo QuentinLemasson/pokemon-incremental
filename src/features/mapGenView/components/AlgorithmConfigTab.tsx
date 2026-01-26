@@ -55,20 +55,58 @@ export const AlgorithmConfigTab = ({
             Voronoi Parameters
           </h3>
 
-          <FieldWithTooltip field={FIELD_DESCRIPTIONS.maxRadius}>
+          <FieldWithTooltip field={FIELD_DESCRIPTIONS.maxDistance}>
             <div className="space-y-2">
               <div className="text-sm text-slate-400">
-                Value: {voronoiConfig.maxRadius}
+                Value: {voronoiConfig.maxDistance}
               </div>
               <input
                 type="range"
                 min="4"
                 max="15"
-                value={voronoiConfig.maxRadius}
+                value={voronoiConfig.maxDistance}
                 onChange={e =>
                   onUpdateGeneratorConfig(
-                    'maxRadius',
+                    'maxDistance',
                     parseInt(e.target.value, 10)
+                  )
+                }
+                className="w-full"
+              />
+            </div>
+          </FieldWithTooltip>
+
+          <FieldWithTooltip field={FIELD_DESCRIPTIONS.coverage}>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-slate-400">
+                <span>Value: {(voronoiConfig.coverage * 100).toFixed(0)}%</span>
+                <span>
+                  Radius:{' '}
+                  {Math.floor(
+                    voronoiConfig.coverage * voronoiConfig.maxDistance
+                  )}{' '}
+                  | Tiles:{' '}
+                  {1 +
+                    3 *
+                      Math.floor(
+                        voronoiConfig.coverage * voronoiConfig.maxDistance
+                      ) *
+                      (Math.floor(
+                        voronoiConfig.coverage * voronoiConfig.maxDistance
+                      ) +
+                        1)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={voronoiConfig.coverage}
+                onChange={e =>
+                  onUpdateGeneratorConfig(
+                    'coverage',
+                    parseFloat(e.target.value)
                   )
                 }
                 className="w-full"
@@ -97,19 +135,19 @@ export const AlgorithmConfigTab = ({
             </div>
           </FieldWithTooltip>
 
-          <FieldWithTooltip field={FIELD_DESCRIPTIONS.sitesMaxRadius}>
+          <FieldWithTooltip field={FIELD_DESCRIPTIONS.sitesMaxDistance}>
             <div className="space-y-2">
               <div className="text-sm text-slate-400">
-                Value: {voronoiConfig.sitesMaxRadius}
+                Value: {voronoiConfig.sitesMaxDistance}
               </div>
               <input
                 type="range"
                 min="2"
                 max="12"
-                value={voronoiConfig.sitesMaxRadius}
+                value={voronoiConfig.sitesMaxDistance}
                 onChange={e =>
                   onUpdateGeneratorConfig(
-                    'sitesMaxRadius',
+                    'sitesMaxDistance',
                     parseInt(e.target.value, 10)
                   )
                 }
@@ -130,10 +168,7 @@ export const AlgorithmConfigTab = ({
                 step="0.05"
                 value={voronoiConfig.jitter}
                 onChange={e =>
-                  onUpdateGeneratorConfig(
-                    'jitter',
-                    parseFloat(e.target.value)
-                  )
+                  onUpdateGeneratorConfig('jitter', parseFloat(e.target.value))
                 }
                 className="w-full"
               />

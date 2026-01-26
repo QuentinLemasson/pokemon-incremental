@@ -4,7 +4,7 @@ import { BIOME_FILL, MAP_TILE_COLORS } from '../mapBiome.config';
 import { axialToPixelFlat, flatTopHexPoints } from '../utils/hexSvg.util';
 import { zoomAtPoint, type MapViewTransform } from '../utils/panZoom.util';
 import { VoronoiOverlay } from './VoronoiOverlay';
-import type { VoronoiContext } from '@/features/engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '@/features/engine/world/types';
 
 export type HexMapTile = {
   id: string;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { engineLoop, type WorldSnapshot } from '../engine/runtime/engineLoop';
-import type { VoronoiContext } from '../engine/world/generation/centeredVoronoiNoise.generator';
+import type { VoronoiContext } from '../engine/world/types';
 
 declare global {
   var __POKE_RPG_WORLD_STORE_BOUND__: boolean | undefined;

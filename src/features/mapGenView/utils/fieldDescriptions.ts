@@ -10,21 +10,6 @@ export const FIELD_DESCRIPTIONS = {
     description:
       'Deterministic seed for world generation. Same seed + config = same world. Use random seed for variety.',
   },
-  radius: {
-    title: 'World Radius',
-    description:
-      'Target world radius in hex steps. Controls overall world size. Formula: tiles = 1 + 3×R×(R+1). Higher = larger world.',
-  },
-  minTiles: {
-    title: 'Min Tiles',
-    description:
-      'Optional minimum tile count. World will grow until it reaches at least this many tiles. Useful for ensuring minimum size.',
-  },
-  maxTiles: {
-    title: 'Max Tiles',
-    description:
-      'Optional maximum tile count. World will be capped at this size. Useful for performance or consistency across seeds.',
-  },
 
   // Algorithm Selection
   generatorType: {
@@ -34,20 +19,25 @@ export const FIELD_DESCRIPTIONS = {
   },
 
   // Voronoi Configuration
-  maxRadius: {
-    title: 'Max Radius',
+  maxDistance: {
+    title: 'Max Distance',
     description:
-      'Candidate boundary radius for Voronoi generation. Defines the maximum area where candidate tiles can exist. Should be >= world radius.',
+      'Candidate boundary distance (in hex steps) for Voronoi generation. Defines the maximum possible distance from center for any hex in the world. This is the hard limit for world size.',
+  },
+  coverage: {
+    title: 'Coverage',
+    description:
+      'Target coverage as a fraction of maxDistance (0-1). Determines desired world size: radius = coverage × maxDistance, tiles = 1 + 3×R×(R+1). Higher = larger world, but limited by maxDistance.',
   },
   pointsCount: {
     title: 'Points Count',
     description:
       'Number of Voronoi sites (regions). More points = more biome regions, smaller individual regions. Affects biome distribution.',
   },
-  sitesMaxRadius: {
-    title: 'Sites Max Radius',
+  sitesMaxDistance: {
+    title: 'Sites Max Distance',
     description:
-      'Maximum radius where Voronoi sites can spawn. Controls how far from center biome regions can start. Should be <= maxRadius.',
+      'Maximum distance (in hex steps) where Voronoi sites can spawn, relative to the world center. Controls how far from center biome regions can start. Should be <= maxDistance.',
   },
   jitter: {
     title: 'Jitter',
