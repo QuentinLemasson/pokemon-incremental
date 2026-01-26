@@ -7,6 +7,8 @@ import type {
   GeneratorConfig,
 } from './generation/types';
 import type { GenerationResult } from './types';
+import { chunkSeed, createRng } from './generation/seed';
+import type { Rng } from './generation/seed';
 import {
   computeVoronoiBiome,
   computeVoronoiShapeScore,
@@ -56,10 +58,17 @@ function mergeGeneratorConfig(
 
 /**
  * Generates hexes for a single chunk.
+ * @param chunk - Chunk configuration
+ * @param config - World generation configuration
+ * @param chunkSeedString - Chunk-specific seed string derived from world seed and chunk coordinates
+ * @param rng - Chunk-specific RNG instance (created from chunkSeedString)
  */
 function generateChunkHexes(
   chunk: ChunkConfig,
-  config: WorldGenerationConfig
+  config: WorldGenerationConfig,
+  chunkSeedString: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _rng: Rng
 ): Hex[] {
   // Merge base generator with chunk-specific overrides
   const generatorConfig = mergeGeneratorConfig(
@@ -105,9 +114,10 @@ function generateChunkHexes(
   // Use chunk-specific biome list
   const biomes: HexBiome[] = [...chunk.biomeList];
 
-  // Create Voronoi context for this chunk
+  // Create Voronoi context for this chunk using chunk-specific seed
+  // Note: RNG parameter is available for any future random operations within chunk generation
   const voronoi = createCenteredVoronoiSites({
-    seed: config.seed,
+    seed: chunkSeedString,
     biomes,
     worldMaxDistance: candidateRadius,
     config: {
@@ -128,21 +138,27 @@ function generateChunkHexes(
     },
   });
 
-  // Calculate chunk offset for global coordinates
-  // For now, we only generate chunk (0,0), so offset is (0,0)
-  // In the future, this would be: offset = chunk.coord * chunkSpacing
-  const chunkOffset: HexCoordinates = { q: 0, r: 0 };
+  // Calculate chunk spacing to prevent overlap
+  // If chunkRadius is R, chunks need to be spaced by at least 2*R+1
+  // This ensures chunks don't overlap when centered at their coordinates
+  const chunkSpacing = 2 * config.chunkRadius + 1;
+
+  // Calculate world offset for this chunk relative to chunk (0,0) center
+  // Chunk (0,0) is at world center, other chunks are offset by chunkSpacing
+  const chunkWorldOffset: HexCoordinates = {
+    q: chunk.coord.q * chunkSpacing,
+    r: chunk.coord.r * chunkSpacing,
+  };
 
   for (const id of selected) {
     const localCoord = candidateById.get(id);
     if (!localCoord) continue;
 
-    // Transform local coordinates to global coordinates
-    // For chunk (0,0), this is just the local coordinates
-    // Future: globalCoord = { q: chunkOffset.q + localCoord.q, r: chunkOffset.r + localCoord.r }
+    // Transform local coordinates to global coordinates relative to chunk (0,0) center
+    // Global coordinate = chunk world offset + local coordinate within chunk
     const globalCoord: HexCoordinates = {
-      q: chunkOffset.q + localCoord.q,
-      r: chunkOffset.r + localCoord.r,
+      q: chunkWorldOffset.q + localCoord.q,
+      r: chunkWorldOffset.r + localCoord.r,
     };
 
     // Create unique hex ID that includes chunk info
@@ -167,52 +183,78 @@ function generateChunkHexes(
  * @returns Generation result containing hexes and optional Voronoi context for visualization.
  *
  * @remarks
- * For now, only generates chunk (0,0) if present in config.chunks.
+ * Generates all chunks specified in config.chunks.
+ * Each chunk is generated independently with its own biome list and generator config overrides.
  * The `coverage` parameter (0-1) determines the desired world size relative to `maxDistance`.
  * Target radius = coverage × maxDistance, which gives tiles = 1 + 3×R×(R+1).
  * The actual world size is limited by `chunkRadius` (clamps maxDistance).
  * The final world is a connected subset grown from the candidate pool.
+ * Hex coordinates are global and relative to chunk (0,0) center.
+ * Chunks are spaced by (2 * chunkRadius + 1) to prevent overlap.
+ * Global coordinate = chunkWorldOffset + localCoord, where chunkWorldOffset = chunkCoord * chunkSpacing.
  */
+export type ChunkHexMapping = {
+  chunkId: string;
+  hexIds: string[];
+};
+
 export function generateMapsWithContext(
   config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
-): GenerationResult {
+): GenerationResult & { chunkHexMappings: ChunkHexMapping[] } {
   const allHexes: Hex[] = [];
+  const chunkHexMappings: ChunkHexMapping[] = [];
   let voronoiContext: GenerationResult['voronoiContext'] = undefined;
 
-  // For now, only generate chunk (0,0)
-  const chunkToGenerate = config.chunks.find(
-    chunk => chunk.coord.q === 0 && chunk.coord.r === 0
-  );
+  // Generate all chunks
+  for (const chunk of config.chunks) {
+    // Derive chunk-specific seed and create RNG
+    const chunkSeedString = chunkSeed(
+      config.seed,
+      chunk.coord.q,
+      chunk.coord.r,
+      'continental'
+    );
+    const rng = createRng(chunkSeedString);
 
-  if (chunkToGenerate) {
-    const chunkHexes = generateChunkHexes(chunkToGenerate, config);
+    const chunkHexes = generateChunkHexes(chunk, config, chunkSeedString, rng);
     allHexes.push(...chunkHexes);
 
-    // Note: Voronoi context is per-chunk, so we only return the context for chunk (0,0)
-    // In the future, we might need to handle multiple contexts
-    const generatorConfig = mergeGeneratorConfig(
-      config.baseGenerator,
-      chunkToGenerate.customGenerator
-    );
-    const voronoiConfig = generatorConfig.centeredVoronoiNoise;
-    const clampedMaxDistance = Math.min(
-      voronoiConfig.maxDistance,
-      config.chunkRadius
-    );
-    const candidateRadius = Math.max(0, Math.floor(clampedMaxDistance));
-
-    voronoiContext = createCenteredVoronoiSites({
-      seed: config.seed,
-      biomes: [...chunkToGenerate.biomeList],
-      worldMaxDistance: candidateRadius,
-      config: {
-        ...voronoiConfig,
-        maxDistance: clampedMaxDistance,
-      },
+    // Store chunk-to-hex mapping
+    chunkHexMappings.push({
+      chunkId: chunk.id,
+      hexIds: chunkHexes.map(h => h.id),
     });
+
+    // Return Voronoi context for the first chunk (typically chunk 0,0)
+    // This is used for visualization/debugging overlays
+    if (!voronoiContext && chunkHexes.length > 0) {
+      const generatorConfig = mergeGeneratorConfig(
+        config.baseGenerator,
+        chunk.customGenerator
+      );
+      const voronoiConfig = generatorConfig.centeredVoronoiNoise;
+      const clampedMaxDistance = Math.min(
+        voronoiConfig.maxDistance,
+        config.chunkRadius
+      );
+      const candidateRadius = Math.max(0, Math.floor(clampedMaxDistance));
+
+      voronoiContext = createCenteredVoronoiSites({
+        seed: chunkSeedString,
+        biomes: [...chunk.biomeList],
+        worldMaxDistance: candidateRadius,
+        config: {
+          ...voronoiConfig,
+          maxDistance: clampedMaxDistance,
+        },
+      });
+    }
   }
 
-  return { hexes: allHexes, voronoiContext };
+  console.log('Chunk hex mappings:', chunkHexMappings);
+  console.log('Voronoi context:', voronoiContext);
+
+  return { hexes: allHexes, voronoiContext, chunkHexMappings };
 }
 
 /**

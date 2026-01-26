@@ -4,6 +4,7 @@ import { loadChunkConfigs } from './chunk-config/loadChunkConfigs';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
 import type { HexBiome, VoronoiContext } from './types';
+import type { ChunkData } from './types/world-manager.types';
 
 /**
  * WorldManager
@@ -12,14 +13,23 @@ import type { HexBiome, VoronoiContext } from './types';
  * Stores should not implement world rules; they only reflect snapshots and
  * forward intents (e.g. hex clicked).
  */
+
 export class WorldManager {
   /**
-   * Normalized state:
+   * Normalized state (NSS format):
    * - `hexById` for O(1) retrieval
    * - `hexIds` to keep a stable iteration order for snapshots/UI
+   * - `chunkById` for O(1) chunk retrieval
+   * - `chunkIds` to keep a stable iteration order
+   * - `hexIdToChunkId` for hex -> chunk lookup
+   * - `chunkIdToHexIds` for chunk -> hexes lookup (double-reference)
    */
   private readonly hexById: Map<string, Hex>;
   private readonly hexIds: string[];
+  private readonly chunkById: Map<string, ChunkData>;
+  private readonly chunkIds: string[];
+  private readonly hexIdToChunkId: Map<string, string>;
+  private readonly chunkIdToHexIds: Map<string, string[]>;
   private readonly voronoiContext: VoronoiContext | undefined;
 
   constructor() {
@@ -39,8 +49,36 @@ export class WorldManager {
     };
 
     const result = generateMapsWithContext(worldConfig);
+
+    // Store hexes in NSS format
     this.hexById = new Map(result.hexes.map(h => [h.id, h]));
     this.hexIds = result.hexes.map(h => h.id);
+
+    // Store chunks in NSS format
+    this.chunkById = new Map();
+    this.chunkIds = [];
+    this.hexIdToChunkId = new Map();
+    this.chunkIdToHexIds = new Map();
+
+    // Build chunk data and double-referenced relationships
+    for (const chunkConfig of chunks) {
+      const chunkData: ChunkData = {
+        id: chunkConfig.id,
+        coord: chunkConfig.coord,
+        biomeList: chunkConfig.biomeList,
+      };
+      this.chunkById.set(chunkConfig.id, chunkData);
+      this.chunkIds.push(chunkConfig.id);
+    }
+
+    // Build double-referenced chunk <=> hex relationships
+    for (const mapping of result.chunkHexMappings) {
+      this.chunkIdToHexIds.set(mapping.chunkId, mapping.hexIds);
+      for (const hexId of mapping.hexIds) {
+        this.hexIdToChunkId.set(hexId, mapping.chunkId);
+      }
+    }
+
     this.voronoiContext = result.voronoiContext;
   }
 
