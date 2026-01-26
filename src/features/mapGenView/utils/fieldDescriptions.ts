@@ -10,6 +10,11 @@ export const FIELD_DESCRIPTIONS = {
     description:
       'Deterministic seed for world generation. Same seed + config = same world. Use random seed for variety.',
   },
+  chunkRadius: {
+    title: 'Chunk Radius',
+    description:
+      'Radius of each chunk in hex steps. Controls the size of chunks and clamps the maxDistance for all chunks. Chunks are spaced by (2 * chunkRadius + 1) to prevent overlap.',
+  },
 
   // Algorithm Selection
   generatorType: {

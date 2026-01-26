@@ -46,6 +46,24 @@ export const WorldConfigTab = ({
             </Button>
           </div>
         </FieldWithTooltip>
+
+        <FieldWithTooltip field={FIELD_DESCRIPTIONS.chunkRadius}>
+          <div className="space-y-2">
+            <div className="text-sm text-slate-400">
+              Value: {config.chunkRadius}
+            </div>
+            <input
+              type="range"
+              min="4"
+              max="15"
+              value={config.chunkRadius}
+              onChange={e =>
+                onUpdateConfig('chunkRadius', parseInt(e.target.value, 10))
+              }
+              className="w-full"
+            />
+          </div>
+        </FieldWithTooltip>
       </CardContent>
     </Card>
   );

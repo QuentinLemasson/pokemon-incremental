@@ -19,6 +19,7 @@ export const MapGenView = () => {
     setConfig,
     updateConfig,
     updateGeneratorConfig,
+    updateChunk,
     randomizeSeed,
   } = useMapGenConfig();
 
@@ -68,6 +69,7 @@ export const MapGenView = () => {
             config={config}
             onUpdateConfig={updateConfig}
             onUpdateGeneratorConfig={updateGeneratorConfig}
+            onUpdateChunk={updateChunk}
             onRandomSeed={randomizeSeed}
           />
 
