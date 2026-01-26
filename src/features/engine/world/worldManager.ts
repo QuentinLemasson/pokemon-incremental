@@ -1,5 +1,6 @@
 import { DEFAULT_WORLD_GENERATION, generateMapsWithContext } from './generator';
 import { createSeedString } from './generation/seed';
+import { loadChunkConfigs } from './chunk-config/loadChunkConfigs';
 import type { Hex } from './hex';
 import type { WorldSnapshot } from '../runtime/engineLoop';
 import type { HexBiome, VoronoiContext } from './types';
@@ -27,16 +28,17 @@ export class WorldManager {
       globalThis.__POKE_RPG_WORLD_SEED__ ??
       (globalThis.__POKE_RPG_WORLD_SEED__ = createSeedString());
 
-    const result = generateMapsWithContext({
+    // Load chunk configurations
+    const chunks = loadChunkConfigs();
+
+    // Build world generation config with chunks
+    const worldConfig = {
       ...DEFAULT_WORLD_GENERATION,
       seed,
-      generator: {
-        ...DEFAULT_WORLD_GENERATION.generator,
-        centeredVoronoiNoise: {
-          ...DEFAULT_WORLD_GENERATION.generator.centeredVoronoiNoise,
-        },
-      },
-    });
+      chunks,
+    };
+
+    const result = generateMapsWithContext(worldConfig);
     this.hexById = new Map(result.hexes.map(h => [h.id, h]));
     this.hexIds = result.hexes.map(h => h.id);
     this.voronoiContext = result.voronoiContext;

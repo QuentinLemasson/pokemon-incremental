@@ -1,4 +1,6 @@
+import type { HexCoordinates } from '@/common/types/hex.types';
 import type { SeedString } from './seed';
+import type { HexBiome } from '../types/biome.types';
 
 export type WorldGeneratorType = 'centered_voronoi_noise_v1';
 
@@ -42,10 +44,24 @@ export type CenteredVoronoiNoiseConfig = {
   maxSiteSampleAttempts?: number;
 };
 
+export type GeneratorConfig = {
+  type: WorldGeneratorType;
+  centeredVoronoiNoise: CenteredVoronoiNoiseConfig;
+};
+
+export type ChunkConfig = {
+  id: string;
+  coord: HexCoordinates;
+  biomeList: readonly HexBiome[];
+  customGenerator?: Partial<GeneratorConfig>;
+};
+
 export type WorldGenerationConfig = {
   seed: SeedString;
-  generator: {
-    type: WorldGeneratorType;
-    centeredVoronoiNoise: CenteredVoronoiNoiseConfig;
-  };
+
+  chunkRadius: number;
+
+  chunks: ChunkConfig[];
+
+  baseGenerator: GeneratorConfig;
 };

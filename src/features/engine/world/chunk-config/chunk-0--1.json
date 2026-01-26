@@ -1,0 +1,17 @@
+{
+    "id": "chunk-0--1",
+    "coord": {
+        "q": 0,
+        "r": -1
+    },
+    "biomeList": [
+        "verdant-forest", "misty-swamp", "canaro-mountains"
+    ],
+    "customGenerator": {
+        "type": "centered_voronoi_noise_v1",
+        "centeredVoronoiNoise": {
+            "pointsCount": 4,
+            "coverage": 0.5
+        }
+    }
+}

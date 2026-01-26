@@ -1,9 +1,12 @@
 import { Hex } from './hex';
 import type { HexCoordinates } from '@/common/types/hex.types';
 import type { HexBiome } from './types';
-import type { WorldGenerationConfig } from './generation/types';
+import type {
+  WorldGenerationConfig,
+  ChunkConfig,
+  GeneratorConfig,
+} from './generation/types';
 import type { GenerationResult } from './types';
-import { BIOME_IDS } from './biomes';
 import {
   computeVoronoiBiome,
   computeVoronoiShapeScore,
@@ -15,7 +18,9 @@ import {
  */
 export const DEFAULT_WORLD_GENERATION: WorldGenerationConfig = {
   seed: 'dev',
-  generator: {
+  chunkRadius: 8,
+  chunks: [],
+  baseGenerator: {
     type: 'centered_voronoi_noise_v1',
     centeredVoronoiNoise: {
       // Candidate boundary. Final world is a connected subset (organic blob).
@@ -32,33 +37,48 @@ export const DEFAULT_WORLD_GENERATION: WorldGenerationConfig = {
 };
 
 /**
- * Generates the world map and returns both hexes and generation context.
- * Useful for debugging/visualization overlays.
- *
- * World shape:
- * - Build a candidate axial hexagon within `generator.centeredVoronoiNoise.maxDistance`
- * - Grow a connected "blob" from the center using a Voronoi+noise score until reaching target tile count
- *
- * @param config - World generation configuration. Uses DEFAULT_WORLD_GENERATION if not provided.
- * @returns Generation result containing hexes and optional Voronoi context for visualization.
- *
- * @remarks
- * The `coverage` parameter (0-1) determines the desired world size relative to `maxDistance`.
- * Target radius = coverage × maxDistance, which gives tiles = 1 + 3×R×(R+1).
- * The actual world size is limited by `maxDistance` (the candidate pool boundary).
- * The final world is a connected subset grown from the candidate pool.
+ * Merges base generator config with chunk-specific overrides.
  */
-export function generateMapsWithContext(
-  config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
-): GenerationResult {
-  const biomes: HexBiome[] = [...BIOME_IDS];
+function mergeGeneratorConfig(
+  base: GeneratorConfig,
+  override?: Partial<GeneratorConfig>
+): GeneratorConfig {
+  if (!override) return base;
 
-  const voronoiConfig = config.generator.centeredVoronoiNoise;
+  return {
+    type: override.type ?? base.type,
+    centeredVoronoiNoise: {
+      ...base.centeredVoronoiNoise,
+      ...override.centeredVoronoiNoise,
+    },
+  };
+}
 
-  // Calculate candidate boundary (maxDistance)
-  const candidateRadius = Math.max(0, Math.floor(voronoiConfig.maxDistance));
+/**
+ * Generates hexes for a single chunk.
+ */
+function generateChunkHexes(
+  chunk: ChunkConfig,
+  config: WorldGenerationConfig
+): Hex[] {
+  // Merge base generator with chunk-specific overrides
+  const generatorConfig = mergeGeneratorConfig(
+    config.baseGenerator,
+    chunk.customGenerator
+  );
 
-  // Calculate target coverage radius relative to maxDistance
+  const voronoiConfig = generatorConfig.centeredVoronoiNoise;
+
+  // Clamp maxDistance to chunkRadius (same for all chunks)
+  const clampedMaxDistance = Math.min(
+    voronoiConfig.maxDistance,
+    config.chunkRadius
+  );
+
+  // Calculate candidate boundary (clamped maxDistance)
+  const candidateRadius = Math.max(0, Math.floor(clampedMaxDistance));
+
+  // Calculate target coverage radius relative to clamped maxDistance
   const coverage = Math.max(0, Math.min(1, voronoiConfig.coverage));
   const targetRadius = Math.max(0, Math.floor(coverage * candidateRadius));
   const targetTiles = tilesForRadius(targetRadius);
@@ -67,31 +87,33 @@ export function generateMapsWithContext(
   const candidateCoords: HexCoordinates[] = [];
   const candidateById = new Map<string, HexCoordinates>();
 
-  // Standard axial hexagon iteration (see Red Blob Games):
-  // for q in [-R..R]:
-  //   r1 = max(-R, -q-R)
-  //   r2 = min( R, -q+R)
-  //   for r in [r1..r2]:
+  // Generate candidate hexes within chunk (local coordinates, centered at 0,0)
   for (let q = -candidateRadius; q <= candidateRadius; q += 1) {
     const rMin = Math.max(-candidateRadius, -q - candidateRadius);
     const rMax = Math.min(candidateRadius, -q + candidateRadius);
     for (let r = rMin; r <= rMax; r += 1) {
-      const coord: HexCoordinates = { q, r };
+      const localCoord: HexCoordinates = { q, r };
       const id = `q${q}-r${r}`;
-      candidateCoords.push(coord);
-      candidateById.set(id, coord);
+      candidateCoords.push(localCoord);
+      candidateById.set(id, localCoord);
     }
   }
 
   const maxPossibleTiles = candidateCoords.length;
   const finalTargetTiles = Math.max(1, Math.min(targetTiles, maxPossibleTiles));
 
-  // Create Voronoi context once; used for both shape selection + biome assignment.
+  // Use chunk-specific biome list
+  const biomes: HexBiome[] = [...chunk.biomeList];
+
+  // Create Voronoi context for this chunk
   const voronoi = createCenteredVoronoiSites({
     seed: config.seed,
     biomes,
     worldMaxDistance: candidateRadius,
-    config: voronoiConfig,
+    config: {
+      ...voronoiConfig,
+      maxDistance: clampedMaxDistance,
+    },
   });
 
   // Select a connected subset (blob) using best-first expansion by Voronoi score.
@@ -106,14 +128,91 @@ export function generateMapsWithContext(
     },
   });
 
+  // Calculate chunk offset for global coordinates
+  // For now, we only generate chunk (0,0), so offset is (0,0)
+  // In the future, this would be: offset = chunk.coord * chunkSpacing
+  const chunkOffset: HexCoordinates = { q: 0, r: 0 };
+
   for (const id of selected) {
-    const coord = candidateById.get(id);
-    if (!coord) continue;
-    const biome = computeVoronoiBiome(voronoi, coord);
-    hexes.push(new Hex(id, coord, biome));
+    const localCoord = candidateById.get(id);
+    if (!localCoord) continue;
+
+    // Transform local coordinates to global coordinates
+    // For chunk (0,0), this is just the local coordinates
+    // Future: globalCoord = { q: chunkOffset.q + localCoord.q, r: chunkOffset.r + localCoord.r }
+    const globalCoord: HexCoordinates = {
+      q: chunkOffset.q + localCoord.q,
+      r: chunkOffset.r + localCoord.r,
+    };
+
+    // Create unique hex ID that includes chunk info
+    const hexId = `${chunk.id}-q${globalCoord.q}-r${globalCoord.r}`;
+    const biome = computeVoronoiBiome(voronoi, localCoord);
+    hexes.push(new Hex(hexId, globalCoord, biome));
   }
 
-  return { hexes, voronoiContext: voronoi };
+  return hexes;
+}
+
+/**
+ * Generates the world map and returns both hexes and generation context.
+ * Useful for debugging/visualization overlays.
+ *
+ * World shape:
+ * - Generates chunks based on chunk configs
+ * - Each chunk is generated independently with its own biome list and generator config
+ * - Chunk radius clamps the maxDistance for all chunks
+ *
+ * @param config - World generation configuration. Uses DEFAULT_WORLD_GENERATION if not provided.
+ * @returns Generation result containing hexes and optional Voronoi context for visualization.
+ *
+ * @remarks
+ * For now, only generates chunk (0,0) if present in config.chunks.
+ * The `coverage` parameter (0-1) determines the desired world size relative to `maxDistance`.
+ * Target radius = coverage × maxDistance, which gives tiles = 1 + 3×R×(R+1).
+ * The actual world size is limited by `chunkRadius` (clamps maxDistance).
+ * The final world is a connected subset grown from the candidate pool.
+ */
+export function generateMapsWithContext(
+  config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
+): GenerationResult {
+  const allHexes: Hex[] = [];
+  let voronoiContext: GenerationResult['voronoiContext'] = undefined;
+
+  // For now, only generate chunk (0,0)
+  const chunkToGenerate = config.chunks.find(
+    chunk => chunk.coord.q === 0 && chunk.coord.r === 0
+  );
+
+  if (chunkToGenerate) {
+    const chunkHexes = generateChunkHexes(chunkToGenerate, config);
+    allHexes.push(...chunkHexes);
+
+    // Note: Voronoi context is per-chunk, so we only return the context for chunk (0,0)
+    // In the future, we might need to handle multiple contexts
+    const generatorConfig = mergeGeneratorConfig(
+      config.baseGenerator,
+      chunkToGenerate.customGenerator
+    );
+    const voronoiConfig = generatorConfig.centeredVoronoiNoise;
+    const clampedMaxDistance = Math.min(
+      voronoiConfig.maxDistance,
+      config.chunkRadius
+    );
+    const candidateRadius = Math.max(0, Math.floor(clampedMaxDistance));
+
+    voronoiContext = createCenteredVoronoiSites({
+      seed: config.seed,
+      biomes: [...chunkToGenerate.biomeList],
+      worldMaxDistance: candidateRadius,
+      config: {
+        ...voronoiConfig,
+        maxDistance: clampedMaxDistance,
+      },
+    });
+  }
+
+  return { hexes: allHexes, voronoiContext };
 }
 
 /**

@@ -14,10 +14,11 @@ import { FIELD_DESCRIPTIONS } from '../utils/fieldDescriptions';
 type AlgorithmConfigTabProps = {
   config: WorldGenerationConfig;
   onUpdateGeneratorConfig: <
-    K extends keyof WorldGenerationConfig['generator']['centeredVoronoiNoise'],
+    K extends
+      keyof WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'],
   >(
     key: K,
-    value: WorldGenerationConfig['generator']['centeredVoronoiNoise'][K]
+    value: WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'][K]
   ) => void;
 };
 
@@ -25,7 +26,7 @@ export const AlgorithmConfigTab = ({
   config,
   onUpdateGeneratorConfig,
 }: AlgorithmConfigTabProps) => {
-  const voronoiConfig = config.generator.centeredVoronoiNoise;
+  const voronoiConfig = config.baseGenerator.centeredVoronoiNoise;
 
   return (
     <Card>
@@ -38,7 +39,7 @@ export const AlgorithmConfigTab = ({
       <CardContent className="space-y-4">
         <FieldWithTooltip field={FIELD_DESCRIPTIONS.generatorType}>
           <select
-            value={config.generator.type}
+            value={config.baseGenerator.type}
             className="w-full px-3 py-2 border border-slate-600 rounded bg-slate-800 text-white"
             disabled
           >

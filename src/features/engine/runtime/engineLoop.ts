@@ -7,7 +7,7 @@ import type { HexCoordinates } from '@/common/types/hex.types';
 import type { HexBiome } from '../world/types';
 import { BIOMES, BIOME_IDS } from '../world/biomes';
 import { createEnemyPoolForBiome } from '../combat/biomeEncounter.util';
-import type { VoronoiContext } from '../world/generation';
+import type { VoronoiContext } from '../world/types';
 
 export type WorldHexSnapshot = {
   id: string;

@@ -1,0 +1,17 @@
+{
+    "id": "chunk--1-0",
+    "coord": {
+        "q": -1,
+        "r": 0
+    },
+    "biomeList": [
+        "canaro-mountains", "volcanic-crater", "scorched-desert"
+    ],
+    "customGenerator": {
+        "type": "centered_voronoi_noise_v1",
+        "centeredVoronoiNoise": {
+            "maxDistance": 8,
+            "coverage": 0.75
+        }
+    }
+}

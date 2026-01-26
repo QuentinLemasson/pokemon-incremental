@@ -27,17 +27,18 @@ export function useMapGenConfig(initialConfig?: WorldGenerationConfig) {
 
   const updateGeneratorConfig = useCallback(
     <
-      K extends keyof WorldGenerationConfig['generator']['centeredVoronoiNoise'],
+      K extends
+        keyof WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'],
     >(
       key: K,
-      value: WorldGenerationConfig['generator']['centeredVoronoiNoise'][K]
+      value: WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'][K]
     ) => {
       setConfig(prev => ({
         ...prev,
-        generator: {
-          ...prev.generator,
+        baseGenerator: {
+          ...prev.baseGenerator,
           centeredVoronoiNoise: {
-            ...prev.generator.centeredVoronoiNoise,
+            ...prev.baseGenerator.centeredVoronoiNoise,
             [key]: value,
           },
         },

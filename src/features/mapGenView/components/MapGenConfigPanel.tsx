@@ -11,10 +11,11 @@ type MapGenConfigPanelProps = {
     value: WorldGenerationConfig[K]
   ) => void;
   onUpdateGeneratorConfig: <
-    K extends keyof WorldGenerationConfig['generator']['centeredVoronoiNoise'],
+    K extends
+      keyof WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'],
   >(
     key: K,
-    value: WorldGenerationConfig['generator']['centeredVoronoiNoise'][K]
+    value: WorldGenerationConfig['baseGenerator']['centeredVoronoiNoise'][K]
   ) => void;
   onRandomSeed: () => void;
 };
