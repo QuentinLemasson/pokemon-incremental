@@ -138,27 +138,30 @@ function generateChunkHexes(
     },
   });
 
-  // Calculate chunk spacing to prevent overlap
-  // If chunkRadius is R, chunks need to be spaced by at least 2*R+1
-  // This ensures chunks don't overlap when centered at their coordinates
-  const chunkSpacing = 2 * config.chunkRadius + 1;
+  console.log(
+    'Generating chunk',
+    chunk.id,
+    'with',
+    candidateCoords.length,
+    'candidates'
+  );
 
-  // Calculate world offset for this chunk relative to chunk (0,0) center
-  // Chunk (0,0) is at world center, other chunks are offset by chunkSpacing
-  const chunkWorldOffset: HexCoordinates = {
-    q: chunk.coord.q * chunkSpacing,
-    r: chunk.coord.r * chunkSpacing,
-  };
+  // Calculate chunk spacing to prevent overlap
+  const R = config.chunkRadius + 1;
+
+  // Calculate chunk offset for pointy-top to flat-top local coordinate conversion
+  const Qchunk = { q: 2 * R - 1, r: -(R - 1) };
+  const Rchunk = { q: R, r: -(2 * R - 1) };
 
   for (const id of selected) {
     const localCoord = candidateById.get(id);
     if (!localCoord) continue;
 
-    // Transform local coordinates to global coordinates relative to chunk (0,0) center
+    // Convert local coordinates to global coordinates relative to chunk (0,0) center
     // Global coordinate = chunk world offset + local coordinate within chunk
     const globalCoord: HexCoordinates = {
-      q: chunkWorldOffset.q + localCoord.q,
-      r: chunkWorldOffset.r + localCoord.r,
+      q: localCoord.q + chunk.coord.q * Qchunk.q + chunk.coord.r * Rchunk.q,
+      r: localCoord.r + chunk.coord.q * Qchunk.r + chunk.coord.r * Rchunk.r,
     };
 
     // Create unique hex ID that includes chunk info
@@ -201,6 +204,9 @@ export type ChunkHexMapping = {
 export function generateMapsWithContext(
   config: WorldGenerationConfig = DEFAULT_WORLD_GENERATION
 ): GenerationResult & { chunkHexMappings: ChunkHexMapping[] } {
+  console.log('Generating maps with context for config:', config);
+  console.log('Chunks:', config.chunks);
+
   const allHexes: Hex[] = [];
   const chunkHexMappings: ChunkHexMapping[] = [];
   let voronoiContext: GenerationResult['voronoiContext'] = undefined;
